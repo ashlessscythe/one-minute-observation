@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { ThemeProvider } from './ThemeProvider';
+import { DarkModeToggle } from './components/DarkModeToggle';
 import { Button } from "./components/ui/button"
 import { Input } from "./components/ui/input"
 import { Label } from "./components/ui/label"
@@ -43,72 +45,80 @@ const handleSubmit = async (event) => {
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">One Minute Observation Submission Form</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <Label htmlFor="date">Date</Label>
-          <Input
-            type="date"
-            id="date"
-            value={formData.date}
-            onChange={(e) => handleInputChange('date', e.target.value)}
-          />
+    <ThemeProvider>
+      <div className="container mx-auto p-4">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">One Minute Observation Submission Form</h1>
+          <DarkModeToggle />
         </div>
-        <div>
-          <Label htmlFor="supervisorName">Supervisor Name</Label>
-          <Input
-            type="text"
-            id="supervisorName"
-            value={formData.supervisorName}
-            onChange={(e) => handleInputChange('supervisorName', e.target.value)}
-          />
+        <div className="container mx-auto p-4">
+          <h1 className="text-2xl font-bold mb-4">One Minute Observation Submission Form</h1>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="date">Date</Label>
+              <Input
+                type="date"
+                id="date"
+                value={formData.date}
+                onChange={(e) => handleInputChange('date', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="supervisorName">Supervisor Name</Label>
+              <Input
+                type="text"
+                id="supervisorName"
+                value={formData.supervisorName}
+                onChange={(e) => handleInputChange('supervisorName', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Shift</Label>
+              <RadioGroup onValueChange={(value) => handleInputChange('shift', value)}>
+                {[1, 2, 3].map((shift) => (
+                  <div key={shift} className="flex items-center space-x-2">
+                    <RadioGroupItem value={shift.toString()} id={`shift-${shift}`} />
+                    <Label htmlFor={`shift-${shift}`}>{shift}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+            <div>
+              <Label htmlFor="associateName">Associate Name</Label>
+              <Select onValueChange={(value) => handleInputChange('associateName', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an associate" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Jimmy Forks">Jimmy Forks</SelectItem>
+                  <SelectItem value="Sue Speed">Sue Speed</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Topic</Label>
+              <RadioGroup onValueChange={(value) => handleInputChange('topic', value)}>
+                {['Positive Reinforcement', 'At Risk Behavior', 'Not Following Policy', 'Unsafe Condition'].map((topic) => (
+                  <div key={topic} className="flex items-center space-x-2">
+                    <RadioGroupItem value={topic} id={topic} />
+                    <Label htmlFor={topic}>{topic}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
+            <div>
+              <Label htmlFor="actionAddressed">Action Addressed</Label>
+              <Textarea
+                id="actionAddressed"
+                value={formData.actionAddressed}
+                onChange={(e) => handleInputChange('actionAddressed', e.target.value)}
+              />
+            </div>
+            <Button type="submit">Submit Observation</Button>
+          </form>
         </div>
-        <div>
-          <Label>Shift</Label>
-          <RadioGroup onValueChange={(value) => handleInputChange('shift', value)}>
-            {[1, 2, 3].map((shift) => (
-              <div key={shift} className="flex items-center space-x-2">
-                <RadioGroupItem value={shift.toString()} id={`shift-${shift}`} />
-                <Label htmlFor={`shift-${shift}`}>{shift}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
-        <div>
-          <Label htmlFor="associateName">Associate Name</Label>
-          <Select onValueChange={(value) => handleInputChange('associateName', value)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select an associate" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Jimmy Forks">Jimmy Forks</SelectItem>
-              <SelectItem value="Sue Speed">Sue Speed</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>Topic</Label>
-          <RadioGroup onValueChange={(value) => handleInputChange('topic', value)}>
-            {['Positive Reinforcement', 'At Risk Behavior', 'Not Following Policy', 'Unsafe Condition'].map((topic) => (
-              <div key={topic} className="flex items-center space-x-2">
-                <RadioGroupItem value={topic} id={topic} />
-                <Label htmlFor={topic}>{topic}</Label>
-              </div>
-            ))}
-          </RadioGroup>
-        </div>
-        <div>
-          <Label htmlFor="actionAddressed">Action Addressed</Label>
-          <Textarea
-            id="actionAddressed"
-            value={formData.actionAddressed}
-            onChange={(e) => handleInputChange('actionAddressed', e.target.value)}
-          />
-        </div>
-        <Button type="submit">Submit Observation</Button>
-      </form>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 
