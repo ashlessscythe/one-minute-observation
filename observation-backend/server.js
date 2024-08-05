@@ -27,6 +27,28 @@ db.run(`CREATE TABLE IF NOT EXISTS observations (
   actionAddressed TEXT
 )`);
 
+app.get('/api/observations', (req, res) => {
+  const { startDate, endDate, sortBy = 'date', order = 'DESC' } = req.query;
+  
+  let sql = 'SELECT * FROM observations';
+  const params = [];
+
+  if (startDate && endDate) {
+    sql += ' WHERE date BETWEEN ? AND ?';
+    params.push(startDate, endDate);
+  }
+
+  sql += ` ORDER BY ${sortBy} ${order}`;
+  
+  db.all(sql, params, (err, rows) => {
+    if (err) {
+      res.status(400).json({ error: err.message });
+      return;
+    }
+    res.json(rows);
+  });
+});
+
 app.post('/api/observations', (req, res) => {
   const { date, supervisorName, shift, associateName, topic, actionAddressed } = req.body;
   
