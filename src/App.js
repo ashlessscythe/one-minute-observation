@@ -7,6 +7,8 @@ import { Label } from "./components/ui/label"
 import { RadioGroup, RadioGroupItem } from "./components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select"
 import { Textarea } from "./components/ui/textarea"
+import { DatePicker } from "./components/ui/date-picker"
+
 
 function App() {
   const [formData, setFormData] = useState({
@@ -47,20 +49,17 @@ const handleSubmit = async (event) => {
   return (
     <ThemeProvider>
       <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">One Minute Observation Submission Form</h1>
-          <DarkModeToggle />
-        </div>
+    <div className="flex justify-between items-center mb-6">
+      <h1 className="text-2xl font-bold">One Minute Observation Submission Form</h1>
+      <DarkModeToggle />
+    </div>
         <div className="container mx-auto p-4">
-          <h1 className="text-2xl font-bold mb-4">One Minute Observation Submission Form</h1>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="date">Date</Label>
-              <Input
-                type="date"
-                id="date"
-                value={formData.date}
-                onChange={(e) => handleInputChange('date', e.target.value)}
+              <DatePicker
+                date={formData.date}
+                setDate={(newDate) => handleInputChange('date', newDate)}
               />
             </div>
             <div>

@@ -4,13 +4,13 @@
  
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 98%;
     --card-foreground: 222.2 84% 4.9%;
  
-    --popover: 0 0% 100%;
+    --popover: 0 0% 98%;
     --popover-foreground: 222.2 84% 4.9%;
  
     --primary: 222.2 47.4% 11.2%;
@@ -36,13 +36,13 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 222.2 84% 8%;
     --foreground: 210 40% 98%;
  
-    --card: 222.2 84% 4.9%;
+    --card: 222.2 84% 8%;
     --card-foreground: 210 40% 98%;
  
-    --popover: 222.2 84% 4.9%;
+    --popover: 222.2 84% 8%;
     --popover-foreground: 210 40% 98%;
  
     --primary: 210 40% 98%;
@@ -65,7 +65,49 @@
     --ring: 212.7 26.8% 83.9%;
   }
 }
- 
+
+.rdp {
+  --rdp-cell-size: 32px;  /* Adjust this value as needed */
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-background-color: hsl(var(--background));
+}
+
+.rdp-month {
+  width: 100%;
+}
+
+.rdp-table {
+  width: 100%;
+  margin: 0;
+}
+
+.rdp-head_cell,
+.rdp-cell {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  padding: 0;
+  text-align: center;
+}
+
+.rdp-head_cell {
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+
+.rdp-button {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+.rdp-day_selected,
+.rdp-day_selected:focus-visible,
+.rdp-day_selected:hover {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
 @layer base {
   * {
     @apply border-border;
