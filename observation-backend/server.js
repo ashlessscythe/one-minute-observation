@@ -19,20 +19,37 @@ initDatabase().then(() => {
   db = new Database('./observations.sqlite', { verbose: console.log });
   console.log('Connected to the observations database.');
 
-  // GET route for observations
+  // GET route with filters for observations
   app.get('/api/observations', (req, res) => {
-    const { startDate, endDate, sortBy = 'date', order = 'DESC' } = req.query;
-    
-    let sql = 'SELECT * FROM observations';
+    const { supervisorName, startDate, endDate } = req.query;
+    let query = 'SELECT * FROM observations WHERE 1=1';
     const params = [];
-    if (startDate && endDate) {
-      sql += ' WHERE date BETWEEN ? AND ?';
-      params.push(startDate, endDate);
+
+    if (supervisorName) {
+      query += ' AND supervisorName LIKE ?';
+      params.push(`%${supervisorName}%`);
     }
-    sql += ` ORDER BY ${sortBy} ${order}`;
-    
-    const rows = db.prepare(sql).all(...params);
-    res.json(rows);
+
+    if (startDate) {
+      query += ' AND date >= ?';
+      params.push(startDate);
+    }
+
+    if (endDate) {
+      query += ' AND date <= ?';
+      params.push(endDate);
+    }
+
+    query += ' ORDER BY date DESC';
+
+    try {
+      const stmt = db.prepare(query);
+      const rows = stmt.all(...params);
+      res.json(rows);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // POST route for observations
