@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ThemeProvider } from './ThemeProvider';
 import { DarkModeToggle } from './DarkModeToggle';
 import { Button } from "./ui/button"
@@ -9,10 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Textarea } from "./ui/textarea"
 import { DatePicker } from "./ui/date-picker"
 import { Link } from 'react-router-dom';
+import { ScrollArea } from './ui/scroll-area';
+import { Scroll } from 'lucide-react';
+import { SearchableSelect } from './SearchableSelect';
 
 
 function EnterObservation() {
-  // ... (keep all your existing code, but rename the function)
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
   const [formData, setFormData] = useState({
     date: '',
     supervisorName: '',
@@ -21,6 +25,29 @@ function EnterObservation() {
     topic: '',
     actionAddressed: '',
   });
+  const [users, setUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const fetchUsers = async() => {
+    try {
+      const response = await fetch(`${API_URL}/api/users`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      setUsers(data);
+    } catch (e) {
+      console.error('Error fetching users:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const filteredUsers = users.filter(u => {
+    u.name.toLowerCase().includes(searchTerm.toLowerCase());
+  })
 
   const handleInputChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
@@ -29,7 +56,7 @@ function EnterObservation() {
 const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      const response = await fetch('http://localhost:3001/api/observations', {
+      const response = await fetch(`${API_URL}/api/observations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -41,10 +68,25 @@ const handleSubmit = async (event) => {
       }
       const result = await response.json();
       console.log('Observation submitted:', result);
-      // Reset form or show success message
+      // Reset form
+      setFormData({
+        date: '',
+        supervisorName: '',
+        shift: '',
+        associateName: '',
+        topic: '',
+        actionAddressed: '',
+      });
+      
+      // show msg
+      alert('Observation submitted successfully!');
+
+      // nav home
+      Navigate('/')
     } catch (error) {
       console.error('Error submitting observation:', error);
       // Show error message to user
+
     }
   };
 
@@ -88,17 +130,13 @@ const handleSubmit = async (event) => {
             </div>
             <div>
               <Label htmlFor="associateName">Associate Name</Label>
-              <Select onValueChange={(value) => handleInputChange('associateName', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an associate" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Jimmy Forks">Jimmy Forks</SelectItem>
-                  <SelectItem value="Sue Speed">Sue Speed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
+                <SearchableSelect
+                  options={users}
+                  onSelect={(user) => handleInputChange('associateName', user.name)}
+                  placeholder="Select an associate"
+                />
+              </div>
+              <div>
               <Label>Topic</Label>
               <RadioGroup onValueChange={(value) => handleInputChange('topic', value)}>
                 {['Positive Reinforcement', 'At Risk Behavior', 'Not Following Policy', 'Unsafe Condition'].map((topic) => (

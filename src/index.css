@@ -7,6 +7,9 @@
     --background: 0 0% 98%;
     --foreground: 222.2 84% 4.9%;
 
+    --highlight-bg-color: #2c3e50; /* Darker background color */
+    --highlight-text-color: #ecf0f1; /* Lighter text color */
+
     --card: 0 0% 98%;
     --card-foreground: 222.2 84% 4.9%;
  

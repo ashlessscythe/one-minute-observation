@@ -11,7 +11,8 @@ function ViewObservations() {
 
   const fetchObservations = async () => {
     try {
-      const response = await fetch(`${process.env.API_URL}/api/observations`);
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${API_URL}/api/observations`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -27,7 +28,7 @@ function ViewObservations() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">View Observations</h1>
         <Link to="/">
-          <Button variant="outline">Back to Home</Button>
+          <Button variant="outline" className="hover:scale-105 hover:bg-red-100">Back to Home</Button>
         </Link>
       </div>
       {observations.map((obs) => (
