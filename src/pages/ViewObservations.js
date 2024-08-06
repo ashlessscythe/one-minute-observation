@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from "./ui/button";
+import { Button } from "../components/ui/button";
 
 function ViewObservations() {
   const [observations, setObservations] = useState([]);
@@ -23,6 +23,11 @@ function ViewObservations() {
     }
   };
 
+  const formatDate = (dateString) => {
+    return dateString.split('T')[0];
+  };
+
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
@@ -33,7 +38,7 @@ function ViewObservations() {
       </div>
       {observations.map((obs) => (
         <div key={obs.id} className="border p-4 mb-4 rounded">
-          <p>Date: {obs.date}</p>
+          <p>Date: {formatDate(obs.date)}</p>
           <p>Supervisor: {obs.supervisorName}</p>
           <p>Associate: {obs.associateName}</p>
           <p>Topic: {obs.topic}</p>

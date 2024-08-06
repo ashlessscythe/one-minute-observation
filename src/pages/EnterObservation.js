@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { ThemeProvider } from './ThemeProvider';
-import { DarkModeToggle } from './DarkModeToggle';
-import { Button } from "./ui/button"
-import { Input } from "./ui/input"
-import { Label } from "./ui/label"
-import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
-import { Textarea } from "./ui/textarea"
-import { DatePicker } from "./ui/date-picker"
+import { ThemeProvider } from '../components/ThemeProvider';
+import { DarkModeToggle } from '../components/DarkModeToggle';
+import { Button } from "../components/ui/button"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
+import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select"
+import { Textarea } from "../components/ui/textarea"
+import { DatePicker } from "../components/ui/date-picker"
 import { Link } from 'react-router-dom';
-import { ScrollArea } from './ui/scroll-area';
+import { ScrollArea } from '../components/ui/scroll-area';
 import { Scroll } from 'lucide-react';
-import { SearchableSelect } from './SearchableSelect';
+import { SearchableSelect } from '../components/SearchableSelect';
 
 
 function EnterObservation() {

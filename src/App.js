@@ -2,9 +2,9 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { ThemeProvider } from './components/ThemeProvider';
 import { DarkModeToggle } from './components/DarkModeToggle';
-import MainPage from './components/MainPage';
-import EnterObservation from './components/EnterObservation';
-import ViewObservations from './components/ViewObservations';
+import MainPage from './pages/MainPage';
+import EnterObservation from './pages/EnterObservation';
+import ViewObservations from './pages/ViewObservations';
 
 function App() {
   return (
