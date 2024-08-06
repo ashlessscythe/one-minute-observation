@@ -11,7 +11,7 @@ function ViewObservations() {
 
   const fetchObservations = async () => {
     try {
-      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+      const API_URL = process.env.REACT_APP_API_URL || '';
       const response = await fetch(`${API_URL}/api/observations`);
       if (!response.ok) {
         throw new Error('Network response was not ok');

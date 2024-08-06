@@ -16,7 +16,7 @@ import { SearchableSelect } from './SearchableSelect';
 
 
 function EnterObservation() {
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+  const API_URL = process.env.REACT_APP_API_URL || '';
   const [formData, setFormData] = useState({
     date: '',
     supervisorName: '',
