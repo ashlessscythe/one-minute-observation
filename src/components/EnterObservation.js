@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 import { Textarea } from "./ui/textarea"
 import { DatePicker } from "./ui/date-picker"
+import { Link } from 'react-router-dom';
 
 
 function EnterObservation() {
@@ -52,7 +53,9 @@ const handleSubmit = async (event) => {
       <div className="container mx-auto p-4">
     <div className="flex justify-between items-center mb-6">
       <h1 className="text-2xl font-bold">One Minute Observation Submission Form</h1>
-      <DarkModeToggle />
+        <Link to="/">
+          <Button className="transition-all bg-blue-500 hover:bg-blue/90 hover:text-primary-foreground hover:shadow-lg hover:scale-105">Back to Home</Button>
+        </Link>
     </div>
         <div className="container mx-auto p-4">
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -114,7 +117,7 @@ const handleSubmit = async (event) => {
                 onChange={(e) => handleInputChange('actionAddressed', e.target.value)}
               />
             </div>
-            <Button type="submit">Submit Observation</Button>
+            <Button className="hover:scale-105" type="submit">Submit Observation</Button>
           </form>
         </div>
       </div>

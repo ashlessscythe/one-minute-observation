@@ -20,6 +20,8 @@ sudo apt-get install -y python3-pip
 
 # Install pgcli via pip
 pip3 install pgcli
+# Install litecli for sqlite3
+pip3 install litecli
 
 # Clone the GitHub repository into a directory named "tmux" if it doesn't already exist
 if [ ! -d "$HOME/tmux" ]; then

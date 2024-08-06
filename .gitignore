@@ -13,6 +13,7 @@
 
 # backend
 observation-backend/node_modules
+observation-backend/*.csv
 
 # misc
 .DS_Store

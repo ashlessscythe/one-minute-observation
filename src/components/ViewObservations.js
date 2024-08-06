@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "./ui/button";
 
 function ViewObservations() {
@@ -10,7 +11,7 @@ function ViewObservations() {
 
   const fetchObservations = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/observations');
+      const response = await fetch(`${process.env.API_URL}/api/observations`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
@@ -23,7 +24,12 @@ function ViewObservations() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">View Observations</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">View Observations</h1>
+        <Link to="/">
+          <Button variant="outline">Back to Home</Button>
+        </Link>
+      </div>
       {observations.map((obs) => (
         <div key={obs.id} className="border p-4 mb-4 rounded">
           <p>Date: {obs.date}</p>
