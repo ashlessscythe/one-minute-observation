@@ -2,6 +2,7 @@
   "name": "one-minute-observation",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://localhost:3001",
   "dependencies": {
     "@prisma/client": "^5.18.0",
     "@radix-ui/react-label": "^2.1.0",
@@ -47,9 +48,6 @@
   },
   "prisma": {
     "seed": "node prisma/seed.js"
-  },
-  "proxy": {
-    "/api": "http://localhost:3001"
   },
   "eslintConfig": {
     "extends": [

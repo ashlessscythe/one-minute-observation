@@ -1,16 +1,16 @@
-# Use an official Node runtime as the base image
-FROM node:16
+# Use Node.js 16 as the base image
+FROM node:16-alpine AS builder
 
-# Set the working directory in the container
-WORKDIR /usr/src/app
+# Set working directory
+WORKDIR /app
 
 # Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci
 
-# Copy prisma directory and schema
+# Copy prisma schema
 COPY prisma ./prisma/
 
 # Generate Prisma client
@@ -19,15 +19,20 @@ RUN npx prisma generate
 # Copy the rest of the application code
 COPY . .
 
-# Build the frontend
+# Build the application
 RUN npm run build
 
+# Start a new stage for a smaller production image
+FROM node:16-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Copy built assets from builder stage
+COPY --from=builder /app .
+
 # Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
+ENV NODE_ENV production
 
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Command to run the application
-CMD ["node", "server.js"]
+# Start the application
+CMD ["npm", "start"]
