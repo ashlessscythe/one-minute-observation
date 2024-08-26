@@ -4,13 +4,17 @@ FROM node:16
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json for both frontend and backend
+# Copy package.json and package-lock.json
 COPY package*.json ./
-COPY observation-backend/package*.json ./observation-backend/
 
-# Install dependencies for both frontend and backend
+# Install dependencies
 RUN npm install
-RUN cd observation-backend && npm install
+
+# Copy prisma directory and schema
+COPY prisma ./prisma/
+
+# Generate Prisma client
+RUN npx prisma generate
 
 # Copy the rest of the application code
 COPY . .
@@ -20,13 +24,10 @@ RUN npm run build
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=8080
-
-# Change to the backend directory
-WORKDIR /usr/src/app/observation-backend
+ENV PORT=3000
 
 # Expose the port the app runs on
-EXPOSE 8080
+EXPOSE 3000
 
 # Command to run the application
 CMD ["node", "server.js"]
