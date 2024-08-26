@@ -59,7 +59,7 @@ function setupRoutes() {
         data: {
           date: new Date(date),
           supervisorName,
-          shift,
+          shift: parseInt(shift, 10),   // ensure int
           associateName,
           topic,
           actionAddressed,
@@ -93,27 +93,29 @@ function setupRoutes() {
 }
 
 function setupStaticServing() {
-  if (process.env.NODE_ENV === 'production') {
-    const buildPath = path.join(__dirname, '..', 'build');
-  
-    if (fs.existsSync(buildPath)) {
-      console.log('Serving static files from:', buildPath);
-      app.use(express.static(buildPath));
-      app.get('*', (req, res) => {
-        res.sendFile(path.join(buildPath, 'index.html'));
-      });
-    } else {
-      console.warn('Build directory not found. Static file serving is disabled.');
-      app.get('*', (req, res) => {
-        res.status(404).send('Frontend build not found. Please run npm run build');
-      });
-    }
+  const buildPath = path.join(__dirname, 'build');
+  const distPath = path.join(__dirname, 'dist');
+
+  if (fs.existsSync(buildPath)) {
+    console.log('Serving static files from:', buildPath);
+    app.use(express.static(buildPath));
+    serveIndex(buildPath);
+  } else if (fs.existsSync(distPath)) {
+    console.log('Serving static files from:', distPath);
+    app.use(express.static(distPath));
+    serveIndex(distPath);
   } else {
-    console.log('Running in development mode. API-only server.');
+    console.log('No build or dist directory found. Running in API-only mode.');
     app.get('*', (req, res) => {
-      res.status(404).send('API server running in development mode. Frontend should be served separately.');
+      res.status(404).send('Frontend not built. Please run npm run build or use npm run dev for development.');
     });
   }
+}
+
+function serveIndex(staticPath) {
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(staticPath, 'index.html'));
+  });
 }
 
 function startServer() {

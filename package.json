@@ -41,13 +41,12 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
     "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "server": "nodemon server.js",
-    "dev": "concurrently \"npm start\" \"npm run server\"",
-    "prod": "npm run build && node server.js"
+    "dev:server": "nodemon server.js",
+    "dev:client": "react-scripts start",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "prod": "npm run build && npm start"
   },
   "prisma":{
     "seed": "node prisma/seed.js"
