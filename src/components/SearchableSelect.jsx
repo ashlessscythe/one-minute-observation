@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 
 export function SearchableSelect({ options, onSelect, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredOptions, setFilteredOptions] = useState(options);
   const wrapperRef = useRef(null);
 
@@ -21,7 +21,7 @@ export function SearchableSelect({ options, onSelect, placeholder }) {
 
   useEffect(() => {
     setFilteredOptions(
-      options.filter(option =>
+      options.filter((option) =>
         option.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
     );
@@ -44,14 +44,14 @@ export function SearchableSelect({ options, onSelect, placeholder }) {
         className="w-full"
       />
       {isOpen && (
-        <div className="absolute z-10 max-w-[250px] mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+        <div className="absolute z-10 max-w-[250px] mt-1 bg-background border border-input rounded-md shadow-lg">
           <ScrollArea className="h-[200px]">
             <div className="py-1">
               {filteredOptions.map((option) => (
                 <Button
                   key={option.id}
                   variant="ghost"
-                  className="w-full text-left px-2 py-1 text-sm hover:bg-gray-100"
+                  className="w-full text-left px-2 py-1 text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => handleSelect(option)}
                 >
                   {option.name}

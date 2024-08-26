@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 
 export function SearchableDropdown({ options, onSelect, placeholder }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedOption, setSelectedOption] = useState(null);
   const wrapperRef = useRef(null);
 
@@ -20,7 +20,7 @@ export function SearchableDropdown({ options, onSelect, placeholder }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [wrapperRef]);
 
-  const filteredOptions = options.filter(option =>
+  const filteredOptions = options.filter((option) =>
     option.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -42,7 +42,7 @@ export function SearchableDropdown({ options, onSelect, placeholder }) {
         <span className="ml-2">▼</span>
       </Button>
       {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+        <div className="absolute z-10 w-full mt-1 bg-background border border-input rounded-md shadow-lg">
           <div className="p-2">
             <Input
               type="text"
@@ -56,7 +56,7 @@ export function SearchableDropdown({ options, onSelect, placeholder }) {
             {filteredOptions.map((option) => (
               <Button
                 key={option.id}
-                className="w-full justify-between text-left px-4 py-2 hover:bg-gray-100"
+                className="w-full justify-between text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground"
                 onClick={() => handleSelect(option)}
               >
                 {option.name}
