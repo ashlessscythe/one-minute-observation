@@ -48,7 +48,7 @@
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "prod": "npm run build && npm start"
   },
-  "prisma":{
+  "prisma": {
     "seed": "node prisma/seed.js"
   },
   "eslintConfig": {
