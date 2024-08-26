@@ -3,8 +3,7 @@ const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
-const Database = require('better-sqlite3');
-const { initDatabase } = require('./init-db');
+const { PrismaClient } = require('@prisma/client');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -12,52 +11,40 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-let db;
+const prisma = new PrismaClient();
 
-// Initialize database before starting the server
-initDatabase()
-  .then(() => {
-    // Connect to SQLite database
-    db = new Database('./observations.sqlite', { verbose: console.log });
-    console.log('Connected to the observations database.');
+async function main() {
+  try {
+    await prisma.$connect();
+    console.log('Connected to the database.');
 
     setupRoutes();
     setupStaticServing();
     startServer();
-  })
-  .catch(error => {
-    console.error('Failed to initialize database:', error);
+  } catch (error) {
+    console.error('Failed to connect to the database:', error);
     process.exit(1);
-  });
+  }
+}
 
 function setupRoutes() {
   // GET route with filters for observations
-  app.get('/api/observations', (req, res) => {
+  app.get('/api/observations', async (req, res) => {
     const { supervisorName, startDate, endDate } = req.query;
-    let query = 'SELECT * FROM observations WHERE 1=1';
-    const params = [];
-
-    if (supervisorName) {
-      query += ' AND supervisorName LIKE ?';
-      params.push(`%${supervisorName}%`);
-    }
-
-    if (startDate) {
-      query += ' AND date >= ?';
-      params.push(startDate);
-    }
-
-    if (endDate) {
-      query += ' AND date <= ?';
-      params.push(endDate);
-    }
-
-    query += ' ORDER BY date DESC';
-
     try {
-      const stmt = db.prepare(query);
-      const rows = stmt.all(...params);
-      res.json(rows);
+      const observations = await prisma.observation.findMany({
+        where: {
+          supervisorName: supervisorName ? { contains: supervisorName, mode: 'insensitive' } : undefined,
+          date: {
+            gte: startDate ? new Date(startDate) : undefined,
+            lte: endDate ? new Date(endDate) : undefined,
+          },
+        },
+        orderBy: {
+          date: 'desc',
+        },
+      });
+      res.json(observations);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });
@@ -65,15 +52,20 @@ function setupRoutes() {
   });
 
   // POST route for observations
-  app.post('/api/observations', (req, res) => {
+  app.post('/api/observations', async (req, res) => {
     const { date, supervisorName, shift, associateName, topic, actionAddressed } = req.body;
-    
-    const sql = `INSERT INTO observations (date, supervisorName, shift, associateName, topic, actionAddressed)
-                 VALUES (?, ?, ?, ?, ?, ?)`;
-    
     try {
-      const info = db.prepare(sql).run(date, supervisorName, shift, associateName, topic, actionAddressed);
-      res.json({ id: info.lastInsertRowid });
+      const newObservation = await prisma.observation.create({
+        data: {
+          date: new Date(date),
+          supervisorName,
+          shift,
+          associateName,
+          topic,
+          actionAddressed,
+        },
+      });
+      res.json(newObservation);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });
@@ -81,22 +73,18 @@ function setupRoutes() {
   });
 
   // GET route for users
-  app.get('/api/users', (req, res) => {
+  app.get('/api/users', async (req, res) => {
     const { isSupervisor } = req.query;
-    
-    let sql = 'SELECT * FROM users';
-    const params = [];
-
-    if (isSupervisor !== undefined) {
-      sql += ' WHERE isSupervisor = ?';
-      params.push(isSupervisor === 'true' ? 1 : 0);
-    }
-
-    sql += ' ORDER BY name ASC';
-
     try {
-      const rows = db.prepare(sql).all(...params);
-      res.json(rows);
+      const users = await prisma.user.findMany({
+        where: {
+          isSupervisor: isSupervisor === 'true' ? true : isSupervisor === 'false' ? false : undefined,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      });
+      res.json(users);
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });
@@ -110,27 +98,18 @@ function setupStaticServing() {
   
     if (fs.existsSync(buildPath)) {
       console.log('Serving static files from:', buildPath);
-    
-      // Serve static files from the React app
       app.use(express.static(buildPath));
-    
-      // The "catchall" handler: for any request that doesn't
-      // match one above, send back React's index.html file.
       app.get('*', (req, res) => {
         res.sendFile(path.join(buildPath, 'index.html'));
       });
     } else {
       console.warn('Build directory not found. Static file serving is disabled.');
-    
-      // Fallback route handler for production without build
       app.get('*', (req, res) => {
         res.status(404).send('Frontend build not found. Please run npm run build');
       });
     }
   } else {
     console.log('Running in development mode. API-only server.');
-    
-    // Optional: Add a catch-all route for development mode
     app.get('*', (req, res) => {
       res.status(404).send('API server running in development mode. Frontend should be served separately.');
     });
@@ -155,10 +134,15 @@ function startServer() {
   });
 }
 
-// Properly close the database when the server shuts down
-process.on('SIGINT', () => {
-  if (db) {
-    db.close();
-  }
+main()
+  .catch((e) => {
+    throw e;
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
   process.exit();
 });
