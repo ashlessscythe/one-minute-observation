@@ -79,7 +79,8 @@ function ViewObservations() {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    const date = new Date(dateString);
+    return date.toISOString().split("T")[0];
   };
 
   return (
@@ -103,10 +104,14 @@ function ViewObservations() {
               <Label htmlFor="startDate">Start Date</Label>
               <Input
                 type="date"
-                id="startDate"
                 ref={startDateRef}
                 value={filters.startDate}
-                onChange={(e) => handleInputChange("startDate", e.target.value)}
+                onChange={(e) => {
+                  const utcDate = new Date(e.target.value + "T00:00:00Z")
+                    .toISOString()
+                    .split("T")[0];
+                  handleInputChange("startDate", utcDate);
+                }}
                 max={new Date().toISOString().split("T")[0]}
               />
             </div>
@@ -117,7 +122,12 @@ function ViewObservations() {
                 id="endDate"
                 ref={endDateRef}
                 value={filters.endDate}
-                onChange={(e) => handleInputChange("endDate", e.target.value)}
+                onChange={(e) => {
+                  const utcDate = new Date(e.target.value + "T00:00:00Z")
+                    .toISOString()
+                    .split("T")[0];
+                  handleInputChange("endDate", utcDate);
+                }}
                 max={new Date().toISOString().split("T")[0]}
               />
             </div>
@@ -130,9 +140,14 @@ function ViewObservations() {
               placeholder="Select a Supervisor"
             />
           </div>
-          <Button type="submit" disabled={loading}>
-            {loading ? "Searching..." : "Search"}
-          </Button>
+          <div className="flex items-center">
+            <Button type="submit" disabled={loading}>
+              {loading ? "Searching..." : "Search"}
+            </Button>
+            {showResults && observations.length > 0 && (
+              <span className="ml-5">Total results: {observations.length}</span>
+            )}
+          </div>
         </form>
 
         {error && <p className="text-red-500 mb-4">{error}</p>}

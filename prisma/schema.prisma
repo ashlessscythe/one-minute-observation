@@ -12,7 +12,7 @@ datasource db {
 
 model Observation {
   id              Int      @id @default(autoincrement())
-  date            DateTime
+  date            DateTime @db.Date
   supervisorName  String
   shift           Int
   associateName   String

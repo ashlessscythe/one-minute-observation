@@ -39,8 +39,8 @@ function setupRoutes() {
             ? { contains: supervisorName, mode: "insensitive" }
             : undefined,
           date: {
-            gte: startDate ? new Date(startDate) : undefined,
-            lte: endDate ? new Date(endDate) : undefined,
+            gte: startDate ? new Date(startDate + "T00:00:00Z") : undefined,
+            lte: endDate ? new Date(endDate + "T23:59:59.999Z") : undefined,
           },
         },
         orderBy: {
@@ -65,9 +65,10 @@ function setupRoutes() {
       actionAddressed,
     } = req.body;
     try {
+      const utcDate = new Date(date + "T00:00:00Z");
       const newObservation = await prisma.observation.create({
         data: {
-          date: new Date(date),
+          date: utcDate,
           supervisorName,
           shift: parseInt(shift, 10), // ensure int
           associateName,
