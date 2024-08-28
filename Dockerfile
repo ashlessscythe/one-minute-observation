@@ -1,5 +1,5 @@
-# Use Node.js 16 as the base image
-FROM node:20-alpine AS builder
+# Use Node.js 20 as the base image
+FROM node:20-alpine
 
 # Set working directory
 WORKDIR /app
@@ -21,18 +21,6 @@ COPY . .
 
 # Build the application
 RUN npm run build
-
-# Start a new stage for a smaller production image
-FROM node:16-alpine
-
-# Set working directory
-WORKDIR /app
-
-# Copy built assets from builder stage
-COPY --from=builder /app .
-
-# Set environment variables
-ENV NODE_ENV production
 
 # Start the application
 CMD ["npm", "start"]
