@@ -119,11 +119,12 @@ function EnterObservation() {
     <ThemeProvider>
       <div className="container mx-auto p-4">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">
-            One Minute Observation Submission Form
-          </h1>
+          <h1 className="text-2xl font-bold">One Minute Observation Form</h1>
           <Link to="/">
-            <Button className="transition-all bg-blue-500 hover:bg-blue/90 hover:text-primary-foreground hover:shadow-lg hover:scale-105">
+            <Button
+              variant="outline"
+              className="hover:scale-105 hover:bg-red-100"
+            >
               Back to Home
             </Button>
           </Link>
