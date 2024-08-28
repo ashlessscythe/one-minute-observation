@@ -62,7 +62,7 @@ async function main() {
     console.error(
       "users.csv file not found. Please create the file and try again."
     );
-    process.exit(1);
+    process.exit(0);
   }
 
   await new Promise((resolve, reject) => {
