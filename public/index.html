@@ -39,5 +39,31 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
+
+    <script>
+      (function () {
+        var lastWidth = window.innerWidth;
+
+        // Reset zoom level on page load
+        window.addEventListener("load", function () {
+          var viewport = document.querySelector('meta[name="viewport"]');
+          if (viewport) {
+            viewport.content = "width=device-width, initial-scale=1.0";
+          }
+        });
+
+        // Reset zoom level if orientation changes
+        window.addEventListener("resize", function () {
+          var currentWidth = window.innerWidth;
+          if (currentWidth !== lastWidth) {
+            lastWidth = currentWidth;
+            var viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport) {
+              viewport.content = "width=device-width, initial-scale=1.0";
+            }
+          }
+        });
+      })();
+    </script>
   </body>
 </html>

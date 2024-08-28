@@ -36,3 +36,27 @@
     transform: rotate(360deg);
   }
 }
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ensure content is scrollable if it exceeds viewport height */
+body {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Optional: Improve touch scrolling on iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
