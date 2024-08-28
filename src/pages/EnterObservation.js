@@ -6,7 +6,7 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Textarea } from "../components/ui/textarea";
-import { Link } from "react-router-dom";
+import Header from "../components/Header";
 import { SearchableSelect } from "../components/SearchableSelect";
 
 function EnterObservation() {
@@ -118,16 +118,9 @@ function EnterObservation() {
   return (
     <ThemeProvider>
       <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
+        <Header />
+        <div className="container mx-auto p-4 mt-20 pt-6">
           <h1 className="text-2xl font-bold">One Minute Observation Form</h1>
-          <Link to="/">
-            <Button
-              variant="outline"
-              className="hover:scale-105 hover:bg-red-100"
-            >
-              Back to Home
-            </Button>
-          </Link>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

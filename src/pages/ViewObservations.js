@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { SearchableSelect } from "../components/SearchableSelect";
+import Header from "../components/Header";
 
 function ViewObservations() {
   const [observations, setObservations] = useState([]);
@@ -86,16 +87,9 @@ function ViewObservations() {
   return (
     <ThemeProvider>
       <div className="container mx-auto p-4">
-        <div className="flex justify-between items-center mb-6">
+        <Header />
+        <div className="container mx-auto p-4 mt-20 pt-6">
           <h1 className="text-2xl font-bold">View Observations</h1>
-          <Link to="/">
-            <Button
-              variant="outline"
-              className="hover:scale-105 hover:bg-red-100"
-            >
-              Back to Home
-            </Button>
-          </Link>
         </div>
 
         <form onSubmit={handleSearch} className="space-y-4 mb-6">
