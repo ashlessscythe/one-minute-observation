@@ -1,47 +1,98 @@
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient } = require("@prisma/client");
+const fs = require("fs");
+const csv = require("csv-parser");
+const path = require("path");
+const readline = require("readline");
+
 const prisma = new PrismaClient();
 
 const topics = [
-  'Positive Reinforcement',
-  'At Risk Behavior',
-  'Not Following Policy',
-  'Unsafe Condition'
-];
-
-const names = [
-  'John Doe', 'Jane Smith', 'Alice Johnson', 'Bob Williams', 'Charlie Brown',
-  'Diana Davis', 'Ethan Edwards', 'Fiona Ford', 'George Gray', 'Hannah Hill'
+  "Positive Reinforcement",
+  "At Risk Behavior",
+  "Not Following Policy",
+  "Unsafe Condition",
 ];
 
 function getRandomDate(start, end) {
-  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  return new Date(
+    start.getTime() + Math.random() * (end.getTime() - start.getTime())
+  );
 }
 
 function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+async function clearDatabase() {
+  await prisma.observation.deleteMany();
+  await prisma.user.deleteMany();
+  console.log("Database cleared.");
+}
+
+async function promptUser(question) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase());
+    });
+  });
+}
+
 async function main() {
-  // Seed Users
-  for (const name of names) {
+  const args = process.argv.slice(2);
+  let shouldClear = false;
+
+  if (args.includes("--clear")) {
+    shouldClear = true;
+  }
+
+  if (shouldClear) {
+    await clearDatabase();
+  }
+
+  const users = [];
+  const csvPath = path.join(__dirname, "users.csv");
+
+  if (!fs.existsSync(csvPath)) {
+    console.error(
+      "users.csv file not found. Please create the file and try again."
+    );
+    process.exit(1);
+  }
+
+  await new Promise((resolve, reject) => {
+    fs.createReadStream(csvPath)
+      .pipe(csv())
+      .on("data", (row) => {
+        users.push({
+          name: row.name,
+          isSupervisor: row.isSupervisor.toLowerCase() === "true",
+        });
+      })
+      .on("end", resolve)
+      .on("error", reject);
+  });
+
+  for (const user of users) {
     await prisma.user.create({
-      data: {
-        name,
-        isSupervisor: Math.random() > 0.7 // 30% chance of being a supervisor
-      }
+      data: user,
     });
   }
 
-  console.log('Users seeded successfully');
+  console.log("Users created successfully");
 
-  // Get all users
-  const users = await prisma.user.findMany();
-  const supervisors = users.filter(user => user.isSupervisor);
+  const dbUsers = await prisma.user.findMany();
+  const supervisors = dbUsers.filter((user) => user.isSupervisor);
+  const nonSupervisors = dbUsers.filter((user) => !user.isSupervisor);
 
-  // Seed Observations
-  for (let i = 0; i < 50; i++) {
-    const supervisor = supervisors[Math.floor(Math.random() * supervisors.length)];
-    const associate = users[Math.floor(Math.random() * users.length)];
+  for (const supervisor of supervisors) {
+    const associate =
+      nonSupervisors[Math.floor(Math.random() * nonSupervisors.length)];
 
     await prisma.observation.create({
       data: {
@@ -50,12 +101,12 @@ async function main() {
         shift: getRandomInt(1, 3),
         associateName: associate.name,
         topic: topics[Math.floor(Math.random() * topics.length)],
-        actionAddressed: `Action addressed for observation ${i + 1}`
-      }
+        actionAddressed: `Sample action addressed by ${supervisor.name}`,
+      },
     });
   }
 
-  console.log('Observations seeded successfully');
+  console.log("Sample observations created successfully");
 }
 
 main()

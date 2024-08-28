@@ -23,19 +23,21 @@ function MainPage() {
           <main className="container mx-auto p-4 mt-20 pt-6"></main>
           {!user ? (
             <>
-              <h1 className="text-2xl font-bold mx-auto">
-                One Minute Observations
-              </h1>
-              <p className="mb-4">
-                Please log in or create an account to continue.
-              </p>
-              <Button onClick={() => setIsLoginModalOpen(true)}>
-                Log In / Sign Up
-              </Button>
-              <LoginSignupModal
-                isOpen={isLoginModalOpen}
-                onClose={() => setIsLoginModalOpen(false)}
-              />
+              <div className="container flex flex-col justify-center items-center mx-auto p-4">
+                <h1 className="text-2xl font-bold mx-auto">
+                  One Minute Observations
+                </h1>
+                <p className="mb-4">
+                  Please log in or create an account to continue.
+                </p>
+                <Button onClick={() => setIsLoginModalOpen(true)}>
+                  Log In / Sign Up
+                </Button>
+                <LoginSignupModal
+                  isOpen={isLoginModalOpen}
+                  onClose={() => setIsLoginModalOpen(false)}
+                />
+              </div>
             </>
           ) : (
             <>

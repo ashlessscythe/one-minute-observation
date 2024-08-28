@@ -30,12 +30,6 @@ function UserInfo() {
   );
 }
 
-console.log("authorizer url: ", process.env.REACT_APP_AUTHORIZER_URL);
-console.log(
-  "authorizer clientID: ",
-  process.env.REACT_APP_AUTHORIZER_CLIENT_ID
-);
-
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuthorizer();
 

@@ -22,6 +22,6 @@ model Observation {
 
 model User {
   id           Int     @id @default(autoincrement())
-  name         String
+  name         String  @unique
   isSupervisor Boolean @default(false)
 }

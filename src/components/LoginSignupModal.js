@@ -21,7 +21,7 @@ function TabPanel(props) {
       aria-labelledby={`simple-tab-${index}`}
       {...other}
     >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+      {value === index && <Box sx={{ p: 4 }}>{children}</Box>}
     </div>
   );
 }
@@ -95,7 +95,7 @@ function LoginSignupModal({ isOpen, onClose }) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
       <div
         ref={modalRef}
-        className="bg-background text-foreground p-6 rounded-lg max-w-sm w-full"
+        className="bg-background text-foreground p-2 rounded-lg max-h-[80vh] overflow-y-auto max-w-sm w-full"
       >
         <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs
@@ -108,7 +108,7 @@ function LoginSignupModal({ isOpen, onClose }) {
           </Tabs>
         </Box>
         <TabPanel value={tabValue} index={0}>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-3">
             <div>
               <Label htmlFor="login-email">Email</Label>
               <Input

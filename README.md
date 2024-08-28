@@ -1,70 +1,128 @@
-# Getting Started with Create React App
+# One Minute Observation App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This application allows supervisors to record and manage one-minute observations of their team members.
 
-## Available Scripts
+## Prerequisites
 
-In the project directory, you can run:
+- Node.js (v14 or later)
+- npm or yarn
+- PostgreSQL database
+- Docker (optional)
 
-### `npm start`
+## Environment Setup
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Create a `.env` file in the root directory with the following variables:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```
+REACT_APP_API_URL=http://localhost:3001
+PORT=3000
+NODE_ENV=development
+DATABASE_URL=your-postgres-database-url
+REACT_APP_AUTHORIZER_URL=your-authorizer-url
+REACT_APP_AUTHORIZER_CLIENT_ID=your-authorizer-client-id
+```
 
-### `npm test`
+Replace the placeholder values with your actual configuration.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Installation
 
-### `npm run build`
+1. Clone the repository:
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+   ```
+   git clone https://github.com/your-username/one-minute-observation-app.git
+   cd one-minute-observation-app
+   ```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Database Setup
 
-### `npm run eject`
+1. Apply migrations:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+   ```
+   npx prisma migrate deploy
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+2. Seed the database:
+   - Create a `users.csv` file in the root directory with the following format:
+     ```
+     name,isSupervisor
+     John Doe,true
+     Jane Smith,false
+     ```
+   - Run the seed script:
+     ```
+     node seed.js
+     ```
+   - To clear the database before seeding, use the `--clear` flag:
+     ```
+     node seed.js --clear
+     ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Running the Application
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### Development Mode
 
-## Learn More
+1. Start the backend server:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   ```
+   npm run server
+   ```
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+2. In a separate terminal, start the frontend:
+   ```
+   npm start
+   ```
 
-### Code Splitting
+The application will be available at `http://localhost:3000`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Production Build
 
-### Analyzing the Bundle Size
+1. Build the frontend:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+   ```
+   npm run build
+   ```
 
-### Making a Progressive Web App
+2. Serve the built files:
+   ```
+   npm run serve
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+## Docker Deployment (Optional)
 
-### Advanced Configuration
+1. Build the Docker image:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+   ```
+   docker build -t one-minute-observation-app .
+   ```
 
-### Deployment
+2. Run the container:
+   ```
+   docker run -p 3000:3000 --env-file .env one-minute-observation-app
+   ```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## Authentication
 
-### `npm run build` fails to minify
+This app uses Authorizer for authentication. Make sure to set up your Authorizer instance and provide the correct `REACT_APP_AUTHORIZER_URL` and `REACT_APP_AUTHORIZER_CLIENT_ID` in the `.env` file.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## API Endpoints
+
+- GET `/api/observations`: Fetch all observations
+- POST `/api/observations`: Create a new observation
+- GET `/api/users`: Fetch all users
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
