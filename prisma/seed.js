@@ -69,19 +69,39 @@ async function main() {
     fs.createReadStream(csvPath)
       .pipe(csv())
       .on("data", (row) => {
-        users.push({
-          name: row.name,
-          isSupervisor: row.isSupervisor.toLowerCase() === "true",
-        });
+        if (row.name && row.isSupervisor !== undefined) {
+          users.push({
+            name: row.name.trim(),
+            isSupervisor: row.isSupervisor.toLowerCase() === "true",
+          });
+        } else {
+          console.warn(`Skipping invalid row: ${JSON.stringify(row)}`);
+        }
       })
       .on("end", resolve)
       .on("error", reject);
   });
 
+  console.log(`Parsed ${users.length} users from CSV`);
+
   for (const user of users) {
-    await prisma.user.create({
-      data: user,
-    });
+    if (!user.name) {
+      console.warn(`Skipping user with empty name: ${JSON.stringify(user)}`);
+      continue;
+    }
+
+    try {
+      await prisma.user.upsert({
+        where: { name: user.name },
+        update: { isSupervisor: user.isSupervisor },
+        create: {
+          name: user.name,
+          isSupervisor: user.isSupervisor,
+        },
+      });
+    } catch (error) {
+      console.error(`Error upserting user ${user.name}:`, error);
+    }
   }
 
   console.log("Users created successfully");
