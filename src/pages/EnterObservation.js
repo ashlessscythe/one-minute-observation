@@ -51,6 +51,10 @@ function EnterObservation() {
     }
   };
 
+  const isFormValid = () => {
+    return Object.values(formData).every((value) => value !== "");
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchSupervisors();
@@ -83,6 +87,10 @@ function EnterObservation() {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateDate(formData.date)) {
+      return;
+    }
+    if (!isFormValid()) {
+      alert("Please fill in all fields before submitting");
       return;
     }
     try {
@@ -137,6 +145,7 @@ function EnterObservation() {
                 handleInputChange("date", utcDate);
               }}
               max={new Date().toISOString().split("T")[0]}
+              required
             />
             {dateError && (
               <p className="text-red-500 text-sm mt-1">{dateError}</p>
@@ -150,12 +159,14 @@ function EnterObservation() {
                 handleInputChange("supervisorName", supervisor.name)
               }
               placeholder="Select a supervisor"
+              required
             />
           </div>
           <div>
             <Label>Shift</Label>
             <RadioGroup
               onValueChange={(value) => handleInputChange("shift", value)}
+              required
             >
               {[1, 2, 3].map((shift) => (
                 <div key={shift} className="flex items-center space-x-2">
@@ -174,12 +185,14 @@ function EnterObservation() {
               options={users}
               onSelect={(user) => handleInputChange("associateName", user.name)}
               placeholder="Select an associate"
+              required
             />
           </div>
           <div>
             <Label>Topic</Label>
             <RadioGroup
               onValueChange={(value) => handleInputChange("topic", value)}
+              required
             >
               {[
                 "Positive Reinforcement",
@@ -202,9 +215,15 @@ function EnterObservation() {
               onChange={(e) =>
                 handleInputChange("actionAddressed", e.target.value)
               }
+              placeholder="Enter action addressed here..."
+              required
             />
           </div>
-          <Button className="hover:scale-105" type="submit">
+          <Button
+            disabled={!isFormValid()}
+            className="hover:scale-105"
+            type="submit"
+          >
             Submit Observation
           </Button>
         </form>
