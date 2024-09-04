@@ -6,10 +6,12 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
 import { Textarea } from "../components/ui/textarea";
+import { useSite } from "../contexts/SiteContext";
 import Header from "../components/Header";
 import { SearchableSelect } from "../components/SearchableSelect";
 
 function EnterObservation() {
+  const siteCode = useSite();
   const API_URL = process.env.REACT_APP_API_URL || "";
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -27,7 +29,11 @@ function EnterObservation() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/users?isSupervisor=false`);
+      const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
+        headers: {
+          "X-User-Site": siteCode,
+        },
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -40,7 +46,11 @@ function EnterObservation() {
 
   const fetchSupervisors = async () => {
     try {
-      const response = await fetch(`${API_URL}/api/users?isSupervisor=true`);
+      const response = await fetch(`${API_URL}/api/users?isSupervisor=true`, {
+        headers: {
+          "X-User-Site": siteCode,
+        },
+      });
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -52,6 +62,7 @@ function EnterObservation() {
   };
 
   const isFormValid = () => {
+    console.log(`formadata is ${JSON.stringify(formData)}`);
     return Object.values(formData).every((value) => value !== "");
   };
 
@@ -98,6 +109,7 @@ function EnterObservation() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "X-User-Site": siteCode,
         },
         body: JSON.stringify(formData),
       });
@@ -113,6 +125,7 @@ function EnterObservation() {
         associateName: "",
         topic: "",
         actionAddressed: "",
+        site: "",
       });
 
       alert("Observation submitted successfully!");

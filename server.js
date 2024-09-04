@@ -31,6 +31,17 @@ async function main() {
 }
 
 function setupRoutes() {
+  // Middleware to get site from request headers
+  const getSiteFromHeaders = (req, res, next) => {
+    req.userSite = req.headers["x-user-site"];
+    if (!req.userSite) {
+      return res.status(403).json({ error: "User not associated with a site" });
+    }
+    next();
+  };
+
+  app.use(getSiteFromHeaders);
+
   // GET route with filters for observations
   app.get("/api/observations", async (req, res) => {
     const { supervisorName, startDate, endDate } = req.query;
@@ -44,6 +55,7 @@ function setupRoutes() {
             gte: startDate ? new Date(startDate + "T00:00:00Z") : undefined,
             lte: endDate ? new Date(endDate + "T23:59:59.999Z") : undefined,
           },
+          site: { code: req.userSite },
         },
         orderBy: {
           date: "desc",
@@ -72,10 +84,11 @@ function setupRoutes() {
         data: {
           date: utcDate,
           supervisorName,
-          shift: parseInt(shift, 10), // ensure int
+          shift: parseInt(shift, 10),
           associateName,
           topic,
           actionAddressed,
+          site: { connect: { code: req.userSite } },
         },
       });
       res.json(newObservation);
@@ -97,6 +110,7 @@ function setupRoutes() {
               : isSupervisor === "false"
               ? false
               : undefined,
+          site: { code: req.userSite },
         },
         orderBy: {
           name: "asc",

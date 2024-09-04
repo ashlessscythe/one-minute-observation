@@ -49,9 +49,9 @@ Replace the placeholder values with your actual configuration.
 2. Seed the database:
    - Create a `users.csv` file in the root directory with the following format:
      ```
-     name,isSupervisor
-     John Doe,true
-     Jane Smith,false
+     name,isSupervisor,site
+     John Doe,true,SITENAME
+     Jane Smith,false,SITENAME
      ```
    - Run the seed script:
      ```

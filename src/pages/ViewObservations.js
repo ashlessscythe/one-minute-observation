@@ -1,13 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useContext, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
+import { useSite } from "../contexts/SiteContext";
 import { SearchableSelect } from "../components/SearchableSelect";
 import Header from "../components/Header";
 
 function ViewObservations() {
+  const siteCode = useSite();
   const [observations, setObservations] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [filters, setFilters] = useState({
@@ -22,6 +24,8 @@ function ViewObservations() {
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
+  console.log(`sitecode is ${siteCode}`);
+
   useEffect(() => {
     fetchSupervisors();
   }, []);
@@ -31,7 +35,11 @@ function ViewObservations() {
       const API_URL = process.env.REACT_APP_API_URL || "";
       const url = `${API_URL}/api/users?isSupervisor=true`;
       console.log("Fetching from URL:", url);
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          "X-User-Site": siteCode,
+        },
+      });
       console.log("Response status:", response.status);
       const text = await response.text();
       console.log("Response text:", text);
@@ -55,7 +63,11 @@ function ViewObservations() {
         queryParams.append("supervisorName", filters.supervisorName);
 
       const url = `${API_URL}/api/observations?${queryParams.toString()}`;
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        headers: {
+          "X-User-Site": siteCode,
+        },
+      });
       if (!response.ok) {
         throw new Error("Failed to fetch observations");
       }

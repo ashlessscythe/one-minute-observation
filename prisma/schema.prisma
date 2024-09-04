@@ -10,6 +10,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Site {
+  id           Int           @id @default(autoincrement())
+  code         String        @unique
+  observations Observation[]
+  users        User[]
+}
+
 model Observation {
   id              Int      @id @default(autoincrement())
   date            DateTime @db.Date
@@ -18,10 +25,15 @@ model Observation {
   associateName   String
   topic           String
   actionAddressed String
+  siteId          Int?
+  site            Site?    @relation(fields: [siteId], references: [id])
+  createdAt       DateTime @default(now())
 }
 
 model User {
   id           Int     @id @default(autoincrement())
   name         String  @unique
   isSupervisor Boolean @default(false)
+  siteId       Int?
+  site         Site?   @relation(fields: [siteId], references: [id])
 }

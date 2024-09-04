@@ -69,10 +69,11 @@ async function main() {
     fs.createReadStream(csvPath)
       .pipe(csv())
       .on("data", (row) => {
-        if (row.name && row.isSupervisor !== undefined) {
+        if (row.name && row.isSupervisor !== undefined && row.site) {
           users.push({
             name: row.name.trim(),
             isSupervisor: row.isSupervisor.toLowerCase() === "true",
+            site: row.site.trim(),
           });
         } else {
           console.warn(`Skipping invalid row: ${JSON.stringify(row)}`);
@@ -91,12 +92,24 @@ async function main() {
     }
 
     try {
+      // First, ensure the site exists
+      const site = await prisma.site.upsert({
+        where: { code: user.site },
+        update: {},
+        create: { code: user.site },
+      });
+
+      // Then, upsert the user with the site relationship
       await prisma.user.upsert({
         where: { name: user.name },
-        update: { isSupervisor: user.isSupervisor },
+        update: {
+          isSupervisor: user.isSupervisor,
+          site: { connect: { id: site.id } },
+        },
         create: {
           name: user.name,
           isSupervisor: user.isSupervisor,
+          site: { connect: { id: site.id } },
         },
       });
     } catch (error) {
@@ -104,29 +117,7 @@ async function main() {
     }
   }
 
-  console.log("Users created successfully");
-
-  const dbUsers = await prisma.user.findMany();
-  const supervisors = dbUsers.filter((user) => user.isSupervisor);
-  const nonSupervisors = dbUsers.filter((user) => !user.isSupervisor);
-
-  for (const supervisor of supervisors) {
-    const associate =
-      nonSupervisors[Math.floor(Math.random() * nonSupervisors.length)];
-
-    await prisma.observation.create({
-      data: {
-        date: getRandomDate(new Date(2023, 0, 1), new Date()),
-        supervisorName: supervisor.name,
-        shift: getRandomInt(1, 3),
-        associateName: associate.name,
-        topic: topics[Math.floor(Math.random() * topics.length)],
-        actionAddressed: `Sample action addressed by ${supervisor.name}`,
-      },
-    });
-  }
-
-  console.log("Sample observations created successfully");
+  console.log("Users created or updated successfully");
 }
 
 main()
