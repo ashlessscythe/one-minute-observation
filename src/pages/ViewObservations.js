@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { useNavigate } from "react-router";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -9,6 +10,7 @@ import { SearchableSelect } from "../components/SearchableSelect";
 import Header from "../components/Header";
 
 function ViewObservations() {
+  const navigate = useNavigate();
   const siteCode = useSite();
   const [observations, setObservations] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
@@ -40,6 +42,11 @@ function ViewObservations() {
           "X-User-Site": siteCode,
         },
       });
+      if (response.statusCode === 403) {
+        // redirect
+        navigate("/");
+        return;
+      }
       console.log("Response status:", response.status);
       const text = await response.text();
       console.log("Response text:", text);

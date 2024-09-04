@@ -31,9 +31,14 @@ function EnterObservation() {
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
         headers: {
-          "X-User-Site": siteCode,
+          "X-User-Site": siteCode || "",
         },
       });
+      if (response.statusCode === 403) {
+        // redirect
+        navigate("/");
+        return;
+      }
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
