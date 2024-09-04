@@ -34,16 +34,26 @@ function setupRoutes() {
   // Middleware to get site from request headers
   const getSiteFromHeaders = (req, res, next) => {
     req.userSite = req.headers["x-user-site"];
+    next();
+  };
+
+  app.use(getSiteFromHeaders);
+
+  // Middleware to check if site is required for a route
+  const requireSite = (req, res, next) => {
     if (!req.userSite) {
       return res.status(403).json({ error: "User not associated with a site" });
     }
     next();
   };
 
-  app.use(getSiteFromHeaders);
+  // Public routes (no site required)
+  app.get("/api/public", (req, res) => {
+    res.json({ message: "This is a public route" });
+  });
 
   // GET route with filters for observations
-  app.get("/api/observations", async (req, res) => {
+  app.get("/api/observations", requireSite, async (req, res) => {
     const { supervisorName, startDate, endDate } = req.query;
     try {
       const observations = await prisma.observation.findMany({
@@ -69,7 +79,7 @@ function setupRoutes() {
   });
 
   // POST route for observations
-  app.post("/api/observations", async (req, res) => {
+  app.post("/api/observations", requireSite, async (req, res) => {
     const {
       date,
       supervisorName,
@@ -99,7 +109,7 @@ function setupRoutes() {
   });
 
   // GET route for users
-  app.get("/api/users", async (req, res) => {
+  app.get("/api/users", requireSite, async (req, res) => {
     const { isSupervisor } = req.query;
     try {
       const users = await prisma.user.findMany({
