@@ -84,8 +84,11 @@ function LoginSignupModal({ isOpen, onClose }) {
     if (response.errors) {
       setError(response.errors[0].message);
     } else if (response.data) {
+      // reload page after 5 seconds
+      setTimeout(() => {
+        window.location.reload();
+      }, 3000); 
       onClose();
-      window.location.reload();
     }
   };
 

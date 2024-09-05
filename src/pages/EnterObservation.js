@@ -35,7 +35,6 @@ function EnterObservation() {
         },
       });
       if (response.statusCode === 403) {
-        // redirect
         navigate("/");
         return;
       }
@@ -67,8 +66,17 @@ function EnterObservation() {
   };
 
   const isFormValid = () => {
-    console.log(`formadata is ${JSON.stringify(formData)}`);
-    return Object.values(formData).every((value) => value !== "");
+    const requiredFields = [
+      "date",
+      "supervisorName",
+      "shift",
+      "topic",
+      "actionAddressed",
+    ];
+    if (formData.topic !== "Unsafe Condition") {
+      requiredFields.push("associateName");
+    }
+    return requiredFields.every((field) => formData[field] !== "");
   };
 
   useEffect(() => {
@@ -77,7 +85,17 @@ function EnterObservation() {
   }, []);
 
   const handleInputChange = (name, value) => {
-    setFormData({ ...formData, [name]: value });
+    setFormData((prevData) => {
+      const newData = { ...prevData, [name]: value };
+
+      // Reset associateName if topic changes to Unsafe Condition
+      if (name === "topic" && value === "Unsafe Condition") {
+        newData.associateName = "";
+      }
+
+      return newData;
+    });
+
     if (name === "date") {
       validateDate(value);
     }
@@ -100,15 +118,27 @@ function EnterObservation() {
     return true;
   };
 
+  const getAssociatePlaceholder = () => {
+    return formData.topic === "Unsafe Condition"
+      ? "Select Associate (Optional)"
+      : "Select Associate";
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateDate(formData.date)) {
       return;
     }
     if (!isFormValid()) {
-      alert("Please fill in all fields before submitting");
+      alert("Please fill in all required fields before submitting");
       return;
     }
+
+    const submissionData = { ...formData };
+    if (formData.topic === "Unsafe Condition" && !formData.associateName) {
+      submissionData.associateName = "N/A";
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/observations`, {
         method: "POST",
@@ -116,7 +146,7 @@ function EnterObservation() {
           "Content-Type": "application/json",
           "X-User-Site": siteCode,
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       });
       if (!response.ok) {
         throw new Error("Network response was not ok");
@@ -130,7 +160,6 @@ function EnterObservation() {
         associateName: "",
         topic: "",
         actionAddressed: "",
-        site: "",
       });
 
       alert("Observation submitted successfully!");
@@ -149,6 +178,7 @@ function EnterObservation() {
           <h1 className="text-2xl font-bold">One Minute Observation Form</h1>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Date field */}
           <div>
             <Label htmlFor="date">Date</Label>
             <Input
@@ -169,6 +199,8 @@ function EnterObservation() {
               <p className="text-red-500 text-sm mt-1">{dateError}</p>
             )}
           </div>
+
+          {/* Supervisor Name field */}
           <div>
             <Label htmlFor="supervisorName">Supervisor Name</Label>
             <SearchableSelect
@@ -180,8 +212,10 @@ function EnterObservation() {
               required
             />
           </div>
+
+          {/* Shift field */}
           <div>
-            <Label>Shift</Label>
+            <Label className="block mb-2">Shift</Label>
             <RadioGroup
               onValueChange={(value) => handleInputChange("shift", value)}
               required
@@ -197,17 +231,10 @@ function EnterObservation() {
               ))}
             </RadioGroup>
           </div>
+
+          {/* Topic field */}
           <div>
-            <Label htmlFor="associateName">Associate Name</Label>
-            <SearchableSelect
-              options={users}
-              onSelect={(user) => handleInputChange("associateName", user.name)}
-              placeholder="Select an associate"
-              required
-            />
-          </div>
-          <div>
-            <Label>Topic</Label>
+            <Label className="block mb-2">Topic</Label>
             <RadioGroup
               onValueChange={(value) => handleInputChange("topic", value)}
               required
@@ -225,6 +252,18 @@ function EnterObservation() {
               ))}
             </RadioGroup>
           </div>
+
+          {/* Associate Name field - conditional rendering */}
+          <div>
+            <Label htmlFor="associateName">Associate Name</Label>
+            <SearchableSelect
+              options={users}
+              onSelect={(user) => handleInputChange("associateName", user.name)}
+              placeholder={getAssociatePlaceholder()}
+              required={formData.topic !== "Unsafe Condition"}
+            />
+          </div>
+          {/* Action Addressed field */}
           <div>
             <Label htmlFor="actionAddressed">Action Addressed</Label>
             <Textarea
@@ -237,6 +276,8 @@ function EnterObservation() {
               required
             />
           </div>
+
+          {/* Submit button */}
           <Button
             disabled={!isFormValid()}
             className="hover:scale-105"

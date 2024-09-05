@@ -43,10 +43,16 @@ Replace the placeholder values with your actual configuration.
 1. Apply migrations:
 
    ```
+   npx prisma migrate dev
+
+   or
+
    npx prisma migrate deploy
+
    ```
 
 2. Seed the database:
+
    - Create a `users.csv` file in the root directory with the following format:
      ```
      name,isSupervisor,site
@@ -54,9 +60,15 @@ Replace the placeholder values with your actual configuration.
      Jane Smith,false,SITENAME
      ```
    - Run the seed script:
+
      ```
      node seed.js
+
+     or
+
+     npx prisma db seed
      ```
+
    - To clear the database before seeding, use the `--clear` flag:
      ```
      node seed.js --clear
@@ -66,15 +78,10 @@ Replace the placeholder values with your actual configuration.
 
 ### Development Mode
 
-1. Start the backend server:
+1. package.json has customized below script:
 
    ```
-   npm run server
-   ```
-
-2. In a separate terminal, start the frontend:
-   ```
-   npm start
+   npm run dev
    ```
 
 The application will be available at `http://localhost:3000`.
@@ -89,7 +96,7 @@ The application will be available at `http://localhost:3000`.
 
 2. Serve the built files:
    ```
-   npm run serve
+   npm start
    ```
 
 ## Docker Deployment (Optional)
