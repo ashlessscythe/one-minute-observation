@@ -3,7 +3,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { ScrollArea } from "./ui/scroll-area";
 
-export function SearchableSelect({ options, onSelect, placeholder }) {
+export function SearchableSelect({ options, onSelect, placeholder, required, value }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOptions, setFilteredOptions] = useState(options);
@@ -27,6 +27,12 @@ export function SearchableSelect({ options, onSelect, placeholder }) {
     );
   }, [searchTerm, options]);
 
+    useEffect(() => {
+    if (value) {
+      setSearchTerm(value);
+    }
+  }, [value]);
+
   const handleSelect = (option) => {
     onSelect(option);
     setSearchTerm(option.name);
@@ -41,6 +47,7 @@ export function SearchableSelect({ options, onSelect, placeholder }) {
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
         onFocus={() => setIsOpen(true)}
+        required={required}
         className="w-full"
       />
       {isOpen && (

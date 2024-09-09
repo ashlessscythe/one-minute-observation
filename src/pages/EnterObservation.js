@@ -10,10 +10,11 @@ import { useSite } from "../contexts/SiteContext";
 import Header from "../components/Header";
 import { SearchableSelect } from "../components/SearchableSelect";
 
-function EnterObservation() {
+function EnterObservation({ user }) {
   const siteCode = useSite();
   const API_URL = process.env.REACT_APP_API_URL || "";
   const navigate = useNavigate();
+  console.log(`username is ${user.given_name} ${user.family_name}`)
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     supervisorName: "",
@@ -60,6 +61,7 @@ function EnterObservation() {
       }
       const data = await response.json();
       setSupervisors(data);
+      return data;
     } catch (e) {
       console.error("Error fetching supervisors:", e);
     }
@@ -81,8 +83,23 @@ function EnterObservation() {
 
   useEffect(() => {
     fetchUsers();
-    fetchSupervisors();
-  }, []);
+    fetchSupervisors().then(supervisorData => {
+      if (supervisorData) {
+        const userFullName = `${user.given_name} ${user.family_name}`.trim().toLowerCase();
+        console.log(`checking userFullName: ${userFullName}`);
+        const matchingSupervisor = supervisorData.find(supervisor => 
+          supervisor.name.toLowerCase() === userFullName
+        );
+        if (matchingSupervisor) {
+          console.log(`setting supervisorName to matching supervisor: ${matchingSupervisor.name}`);
+          setFormData(prevData => ({
+            ...prevData,
+            supervisorName: matchingSupervisor.name
+          }));
+        }
+      }
+    });
+  }, [user.given_name, user.family_name]);
 
   const handleInputChange = (name, value) => {
     setFormData((prevData) => {
@@ -210,6 +227,7 @@ function EnterObservation() {
               }
               placeholder="Select a supervisor"
               required
+              value={formData.supervisorName}
             />
           </div>
 

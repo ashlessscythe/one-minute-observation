@@ -32,7 +32,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
       <Navigate to="/" />
     );
   }
-  return <>{children}</>;
+  // Pass the user prop to the children
+  return React.Children.map(children, child => 
+    React.cloneElement(child, { user })
+  );
 };
 
 function App() {
