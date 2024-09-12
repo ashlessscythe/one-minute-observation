@@ -28,7 +28,7 @@ Replace the placeholder values with your actual configuration.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/one-minute-observation-app.git
+   git clone https://github.com/ashlessscythe/one-minute-observation-app.git
    cd one-minute-observation-app
    ```
 
