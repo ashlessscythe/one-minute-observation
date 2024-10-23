@@ -11,10 +11,10 @@ import Header from "../components/Header";
 import { SearchableSelect } from "../components/SearchableSelect";
 
 function EnterObservation({ user }) {
-  const siteCode = useSite();
+  const { siteCode, isAdmin } = useSite();
   const API_URL = process.env.REACT_APP_API_URL || "";
   const navigate = useNavigate();
-  console.log(`username is ${user.given_name} ${user.family_name}`)
+  console.log(`username is ${user.given_name} ${user.family_name}`);
   const [formData, setFormData] = useState({
     date: new Date().toISOString().split("T")[0],
     supervisorName: "",
@@ -22,9 +22,11 @@ function EnterObservation({ user }) {
     associateName: "",
     topic: "",
     actionAddressed: "",
+    siteCode: "",
   });
   const [users, setUsers] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+  const [sites, setSites] = useState([]);
   const [dateError, setDateError] = useState("");
   const dateInputRef = useRef(null);
 
@@ -32,7 +34,8 @@ function EnterObservation({ user }) {
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
         headers: {
-          "X-User-Site": siteCode || "",
+          "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
+          "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
       });
       if (response.statusCode === 403) {
@@ -53,7 +56,8 @@ function EnterObservation({ user }) {
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=true`, {
         headers: {
-          "X-User-Site": siteCode,
+          "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
+          "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
       });
       if (!response.ok) {
@@ -67,6 +71,26 @@ function EnterObservation({ user }) {
     }
   };
 
+  const fetchSites = async () => {
+    if (isAdmin) {
+      try {
+        const response = await fetch(`${API_URL}/api/sites`, {
+          headers: {
+            "X-User-Site": siteCode,
+            "X-User-Site-Admin": "true",
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data = await response.json();
+        setSites(data);
+      } catch (e) {
+        console.error("Error fetching sites:", e);
+      }
+    }
+  };
+
   const isFormValid = () => {
     const requiredFields = [
       "date",
@@ -75,6 +99,9 @@ function EnterObservation({ user }) {
       "topic",
       "actionAddressed",
     ];
+    if (isAdmin) {
+      requiredFields.push("siteCode");
+    }
     if (formData.topic !== "Unsafe Condition") {
       requiredFields.push("associateName");
     }
@@ -82,24 +109,45 @@ function EnterObservation({ user }) {
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchSupervisors().then(supervisorData => {
-      if (supervisorData) {
-        const userFullName = `${user.given_name} ${user.family_name}`.trim().toLowerCase();
-        console.log(`checking userFullName: ${userFullName}`);
-        const matchingSupervisor = supervisorData.find(supervisor => 
-          supervisor.name.toLowerCase() === userFullName
-        );
-        if (matchingSupervisor) {
-          console.log(`setting supervisorName to matching supervisor: ${matchingSupervisor.name}`);
-          setFormData(prevData => ({
-            ...prevData,
-            supervisorName: matchingSupervisor.name
-          }));
+    if (!siteCode) {
+      navigate("/");
+      return;
+    }
+
+    if (isAdmin) {
+      fetchSites();
+    } else {
+      fetchUsers();
+      fetchSupervisors().then((supervisorData) => {
+        if (supervisorData) {
+          const userFullName = `${user.given_name} ${user.family_name}`
+            .trim()
+            .toLowerCase();
+          console.log(`checking userFullName: ${userFullName}`);
+          const matchingSupervisor = supervisorData.find(
+            (supervisor) => supervisor.name.toLowerCase() === userFullName
+          );
+          if (matchingSupervisor) {
+            console.log(
+              `setting supervisorName to matching supervisor: ${matchingSupervisor.name}`
+            );
+            setFormData((prevData) => ({
+              ...prevData,
+              supervisorName: matchingSupervisor.name,
+            }));
+          }
         }
-      }
-    });
-  }, [user.given_name, user.family_name]);
+      });
+    }
+  }, [user.given_name, user.family_name, siteCode]);
+
+  // Refetch users and supervisors when site changes (for admin)
+  useEffect(() => {
+    if (isAdmin && formData.siteCode) {
+      fetchUsers();
+      fetchSupervisors();
+    }
+  }, [formData.siteCode]);
 
   const handleInputChange = (name, value) => {
     setFormData((prevData) => {
@@ -156,12 +204,18 @@ function EnterObservation({ user }) {
       submissionData.associateName = "N/A";
     }
 
+    // For non-admin users, use their assigned site code
+    if (!isAdmin) {
+      submissionData.siteCode = siteCode;
+    }
+
     try {
       const response = await fetch(`${API_URL}/api/observations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "X-User-Site": siteCode,
+          "X-User-Site": isAdmin ? formData.siteCode : siteCode,
+          "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
         body: JSON.stringify(submissionData),
       });
@@ -177,6 +231,7 @@ function EnterObservation({ user }) {
         associateName: "",
         topic: "",
         actionAddressed: "",
+        siteCode: "",
       });
 
       alert("Observation submitted successfully!");
@@ -187,14 +242,44 @@ function EnterObservation({ user }) {
     }
   };
 
+  if (!siteCode) {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <ThemeProvider>
       <div className="container mx-auto p-4">
         <Header />
         <div className="container mx-auto p-4 mt-20 pt-6">
           <h1 className="text-2xl font-bold">One Minute Observation Form</h1>
+          {isAdmin && (
+            <p className="text-sm text-gray-600 mt-2">
+              Admin Mode - Select Site
+            </p>
+          )}
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Site selection for admin */}
+          {isAdmin && (
+            <div>
+              <Label htmlFor="siteCode">Site</Label>
+              <select
+                id="siteCode"
+                value={formData.siteCode}
+                onChange={(e) => handleInputChange("siteCode", e.target.value)}
+                className="w-full p-2 border rounded"
+                required
+              >
+                <option value="">Select a site</option>
+                {sites.map((site) => (
+                  <option key={site.id} value={site.code}>
+                    {site.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* Date field */}
           <div>
             <Label htmlFor="date">Date</Label>
@@ -281,6 +366,7 @@ function EnterObservation({ user }) {
               required={formData.topic !== "Unsafe Condition"}
             />
           </div>
+
           {/* Action Addressed field */}
           <div>
             <Label htmlFor="actionAddressed">Action Addressed</Label>

@@ -2,20 +2,29 @@
 import React, { createContext, useContext } from "react";
 import { useAuthorizer } from "@authorizerdev/authorizer-react";
 
-export const SiteContext = createContext(null);
+// Context will provide both site code and admin status
+export const SiteContext = createContext({ siteCode: null, isAdmin: false });
 
-const getSiteFromRoles = (roles) => {
+const getSiteAccess = (roles) => {
+  const isAdmin = roles.includes("site-admin");
   const siteRole = roles.find(
     (role) => role.endsWith("-user") && role.startsWith("site-")
   );
-  return siteRole ? siteRole.toUpperCase().split("-")[1] : null;
+
+  return {
+    siteCode: siteRole ? siteRole.toUpperCase().split("-")[1] : null,
+    isAdmin,
+  };
 };
 
 export const SiteProvider = ({ children }) => {
   const { user } = useAuthorizer();
-  const siteCode = user?.roles ? getSiteFromRoles(user.roles) : null;
+  const siteAccess = user?.roles
+    ? getSiteAccess(user.roles)
+    : { siteCode: null, isAdmin: false };
+
   return (
-    <SiteContext.Provider value={siteCode}>{children}</SiteContext.Provider>
+    <SiteContext.Provider value={siteAccess}>{children}</SiteContext.Provider>
   );
 };
 
