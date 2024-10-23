@@ -46,6 +46,7 @@ function setupRoutes() {
   // Middleware to get site from request headers
   const getSiteFromHeaders = (req, res, next) => {
     req.userSite = req.headers["x-user-site"];
+    req.isAdmin = req.headers["x-user-site-admin"] === "true";
     next();
   };
 
@@ -66,21 +67,38 @@ function setupRoutes() {
 
   // GET route with filters for observations
   app.get("/api/observations", requireSite, async (req, res) => {
-    const { supervisorName, startDate, endDate } = req.query;
+    const { supervisorName, startDate, endDate, siteCode } = req.query;
     try {
-      const observations = await prisma.observation.findMany({
-        where: {
-          supervisorName: supervisorName
-            ? { contains: supervisorName, mode: "insensitive" }
-            : undefined,
-          date: {
-            gte: startDate ? new Date(startDate + "T00:00:00Z") : undefined,
-            lte: endDate ? new Date(endDate + "T23:59:59.999Z") : undefined,
-          },
-          site: { code: req.userSite },
+      // Build where clause based on filters
+      const where = {
+        ...(supervisorName && { supervisorName: supervisorName }), // Exact match for supervisor name
+        date: {
+          gte: startDate ? new Date(startDate + "T00:00:00Z") : undefined,
+          lte: endDate ? new Date(endDate + "T23:59:59.999Z") : undefined,
         },
-        orderBy: {
-          date: "desc",
+      };
+
+      // For admin users, only filter by site if siteCode is provided in query
+      // For regular users, always filter by their assigned site
+      if (req.isAdmin) {
+        if (siteCode) {
+          where.site = { code: siteCode };
+        }
+      } else {
+        where.site = { code: req.userSite };
+      }
+
+      // console.log("Query where clause:", where); // Debug log
+
+      const observations = await prisma.observation.findMany({
+        where,
+        orderBy: [{ date: "desc" }, { site: { code: "asc" } }],
+        include: {
+          site: {
+            select: {
+              code: true,
+            },
+          },
         },
       });
       res.json(observations);
@@ -99,9 +117,23 @@ function setupRoutes() {
       associateName,
       topic,
       actionAddressed,
+      siteCode, // Added for admin users to specify site
     } = req.body;
     try {
       const utcDate = new Date(date + "T00:00:00Z");
+
+      // For admin users, use the specified site code, otherwise use their assigned site
+      const targetSiteCode = req.isAdmin ? siteCode : req.userSite;
+
+      // Verify the site exists
+      const site = await prisma.site.findUnique({
+        where: { code: targetSiteCode },
+      });
+
+      if (!site) {
+        return res.status(400).json({ error: "Invalid site code" });
+      }
+
       const newObservation = await prisma.observation.create({
         data: {
           date: utcDate,
@@ -110,10 +142,42 @@ function setupRoutes() {
           associateName,
           topic,
           actionAddressed,
-          site: { connect: { code: req.userSite } },
+          site: { connect: { code: targetSiteCode } },
+        },
+        include: {
+          site: {
+            select: {
+              code: true,
+            },
+          },
         },
       });
       res.json(newObservation);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.get("/api/sites", requireSite, async (req, res) => {
+    try {
+      if (req.isAdmin) {
+        // Admin can see all sites
+        const sites = await prisma.site.findMany({
+          orderBy: {
+            code: "asc",
+          },
+        });
+        res.json(sites);
+      } else {
+        // Regular users can only see their assigned site
+        const site = await prisma.site.findUnique({
+          where: {
+            code: req.userSite,
+          },
+        });
+        res.json(site ? [site] : []);
+      }
     } catch (err) {
       console.error(err);
       res.status(500).json({ error: err.message });
@@ -124,6 +188,7 @@ function setupRoutes() {
   app.get("/api/users", requireSite, async (req, res) => {
     const { isSupervisor } = req.query;
     try {
+      // For admin users, return users from all sites unless a specific site is requested
       const users = await prisma.user.findMany({
         where: {
           isSupervisor:
@@ -132,10 +197,19 @@ function setupRoutes() {
               : isSupervisor === "false"
               ? false
               : undefined,
-          site: { code: req.userSite },
+          site: { code: req.userSite }, // Always filter by site for consistent data access
         },
-        orderBy: {
-          name: "asc",
+        orderBy: [
+          { name: "asc" },
+          { site: { code: "asc" } }, // Secondary sort by site code
+        ],
+        include: {
+          site: {
+            select: {
+              code: true,
+              users: true,
+            },
+          },
         },
       });
       res.json(users);

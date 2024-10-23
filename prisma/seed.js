@@ -1,10 +1,11 @@
 const { PrismaClient } = require("@prisma/client");
-const fs = require("fs");
-const csv = require("csv-parser");
-const path = require("path");
-const readline = require("readline");
+const { faker } = require("@faker-js/faker");
 
 const prisma = new PrismaClient();
+
+const SITE_COUNT = 3;
+const USERS_PER_SITE = 10;
+const OBSERVATIONS_PER_SITE = 20;
 
 const topics = [
   "Positive Reinforcement",
@@ -13,111 +14,86 @@ const topics = [
   "Unsafe Condition",
 ];
 
-function getRandomDate(start, end) {
-  return new Date(
-    start.getTime() + Math.random() * (end.getTime() - start.getTime())
-  );
-}
-
-function getRandomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 async function clearDatabase() {
   await prisma.observation.deleteMany();
   await prisma.user.deleteMany();
+  await prisma.site.deleteMany();
   console.log("Database cleared.");
 }
 
-async function promptUser(question) {
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
-
-  return new Promise((resolve) => {
-    rl.question(question, (answer) => {
-      rl.close();
-      resolve(answer.toLowerCase());
-    });
-  });
-}
-
 async function main() {
-  const args = process.argv.slice(2);
-  let shouldClear = false;
+  console.log("Starting seed...");
 
-  if (args.includes("--clear")) {
-    shouldClear = true;
+  await clearDatabase();
+
+  // Create sites
+  const sites = [];
+  for (let i = 0; i < SITE_COUNT; i++) {
+    const site = await prisma.site.create({
+      data: {
+        code:
+          faker.location.countryCode() +
+          faker.number.int({ min: 100, max: 999 }),
+      },
+    });
+    sites.push(site);
+    console.log(`Created site: ${site.code}`);
   }
 
-  if (shouldClear) {
-    await clearDatabase();
-  }
+  // Create users for each site
+  for (const site of sites) {
+    // Create one supervisor
+    await prisma.user.create({
+      data: {
+        name: faker.person.fullName(),
+        isSupervisor: true,
+        siteId: site.id,
+      },
+    });
 
-  const users = [];
-  const csvPath = path.join(__dirname, "users.csv");
-
-  if (!fs.existsSync(csvPath)) {
-    console.error(
-      "users.csv file not found. Please create the file and try again."
-    );
-    process.exit(0);
-  }
-
-  await new Promise((resolve, reject) => {
-    fs.createReadStream(csvPath)
-      .pipe(csv())
-      .on("data", (row) => {
-        if (row.name && row.isSupervisor !== undefined && row.site) {
-          users.push({
-            name: row.name.trim(),
-            isSupervisor: row.isSupervisor.toLowerCase() === "true",
-            site: row.site.trim(),
-          });
-        } else {
-          console.warn(`Skipping invalid row: ${JSON.stringify(row)}`);
-        }
-      })
-      .on("end", resolve)
-      .on("error", reject);
-  });
-
-  console.log(`Parsed ${users.length} users from CSV`);
-
-  for (const user of users) {
-    if (!user.name) {
-      console.warn(`Skipping user with empty name: ${JSON.stringify(user)}`);
-      continue;
-    }
-
-    try {
-      // First, ensure the site exists
-      const site = await prisma.site.upsert({
-        where: { code: user.site },
-        update: {},
-        create: { code: user.site },
-      });
-
-      // Then, upsert the user with the site relationship
-      await prisma.user.upsert({
-        where: { name: user.name },
-        update: {
-          isSupervisor: user.isSupervisor,
-          site: { connect: { id: site.id } },
-        },
-        create: {
-          name: user.name,
-          isSupervisor: user.isSupervisor,
-          site: { connect: { id: site.id } },
+    // Create regular users
+    for (let i = 0; i < USERS_PER_SITE - 1; i++) {
+      await prisma.user.create({
+        data: {
+          name: faker.person.fullName(),
+          isSupervisor: false,
+          siteId: site.id,
         },
       });
-    } catch (error) {
-      console.error(`Error upserting user ${user.name}:`, error);
     }
+    console.log(`Created users for site: ${site.code}`);
   }
 
-  console.log("Users created or updated successfully");
+  // Create observations for each site
+  for (const site of sites) {
+    const siteUsers = await prisma.user.findMany({
+      where: { siteId: site.id },
+    });
+    const supervisors = siteUsers.filter((user) => user.isSupervisor);
+    const regularUsers = siteUsers.filter((user) => !user.isSupervisor);
+
+    for (let i = 0; i < OBSERVATIONS_PER_SITE; i++) {
+      const randomSupervisor =
+        supervisors[Math.floor(Math.random() * supervisors.length)];
+      const randomUser =
+        regularUsers[Math.floor(Math.random() * regularUsers.length)];
+
+      await prisma.observation.create({
+        data: {
+          date: faker.date.past({ years: 1 }),
+          supervisorName: randomSupervisor.name,
+          shift: faker.number.int({ min: 1, max: 3 }),
+          associateName: randomUser.name,
+          topic: topics[Math.floor(Math.random() * topics.length)],
+          actionAddressed: faker.lorem.sentence(),
+          siteId: site.id,
+        },
+      });
+    }
+    console.log(`Created observations for site: ${site.code}`);
+  }
+
+  console.log("Seed completed successfully!");
 }
 
 main()

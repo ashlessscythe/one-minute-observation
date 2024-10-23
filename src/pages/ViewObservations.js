@@ -11,13 +11,15 @@ import Header from "../components/Header";
 
 function ViewObservations() {
   const navigate = useNavigate();
-  const siteCode = useSite();
+  const { siteCode, isAdmin } = useSite();
   const [observations, setObservations] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
+  const [sites, setSites] = useState([]);
   const [filters, setFilters] = useState({
     startDate: "",
     endDate: "",
     supervisorName: "",
+    siteCode: "",
   });
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,11 +28,38 @@ function ViewObservations() {
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
-  console.log(`sitecode is ${siteCode}`);
+  console.log(`sitecode is ${siteCode}, isAdmin: ${isAdmin}`);
 
   useEffect(() => {
+    if (!siteCode) {
+      navigate("/");
+      return;
+    }
+    if (isAdmin) {
+      fetchSites();
+    }
     fetchSupervisors();
   }, []);
+
+  const fetchSites = async () => {
+    try {
+      const API_URL = process.env.REACT_APP_API_URL || "";
+      const response = await fetch(`${API_URL}/api/sites`, {
+        headers: {
+          "X-User-Site": siteCode,
+          "X-User-Site-Admin": "true",
+        },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch sites");
+      }
+      const data = await response.json();
+      setSites(data);
+    } catch (error) {
+      console.error("Error fetching sites:", error);
+      setError("Failed to load sites. Please try again.");
+    }
+  };
 
   const fetchSupervisors = async () => {
     try {
@@ -39,7 +68,8 @@ function ViewObservations() {
       console.log("Fetching from URL:", url);
       const response = await fetch(url, {
         headers: {
-          "X-User-Site": siteCode,
+          "X-User-Site": isAdmin ? filters.siteCode || siteCode : siteCode,
+          "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
       });
       if (response.statusCode === 403) {
@@ -68,11 +98,14 @@ function ViewObservations() {
       if (filters.endDate) queryParams.append("endDate", filters.endDate);
       if (filters.supervisorName)
         queryParams.append("supervisorName", filters.supervisorName);
+      if (isAdmin && filters.siteCode)
+        queryParams.append("siteCode", filters.siteCode);
 
       const url = `${API_URL}/api/observations?${queryParams.toString()}`;
       const response = await fetch(url, {
         headers: {
-          "X-User-Site": siteCode,
+          "X-User-Site": isAdmin ? filters.siteCode || siteCode : siteCode,
+          "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
       });
       if (!response.ok) {
@@ -95,7 +128,15 @@ function ViewObservations() {
   };
 
   const handleInputChange = (name, value) => {
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    const newFilters = { ...filters, [name]: value };
+    setFilters(newFilters);
+
+    // If admin changes site, refresh supervisors list
+    if (isAdmin && name === "siteCode") {
+      setSupervisors([]); // Clear current supervisors
+      setFilters((prev) => ({ ...prev, supervisorName: "" })); // Clear selected supervisor
+      fetchSupervisors(); // Fetch supervisors for new site
+    }
   };
 
   const formatDate = (dateString) => {
@@ -103,15 +144,44 @@ function ViewObservations() {
     return date.toISOString().split("T")[0];
   };
 
+  if (!siteCode) {
+    return null; // Will redirect in useEffect
+  }
+
   return (
     <ThemeProvider>
       <div className="container mx-auto p-4">
         <Header />
         <div className="container mx-auto p-4 mt-20 pt-6">
           <h1 className="text-2xl font-bold">View Observations</h1>
+          {isAdmin && (
+            <p className="text-sm text-gray-600 mt-2">
+              Viewing all sites (Admin)
+            </p>
+          )}
         </div>
 
         <form onSubmit={handleSearch} className="space-y-4 mb-6">
+          {/* Site selection for admin */}
+          {isAdmin && (
+            <div>
+              <Label htmlFor="siteCode">Site</Label>
+              <select
+                id="siteCode"
+                value={filters.siteCode}
+                onChange={(e) => handleInputChange("siteCode", e.target.value)}
+                className="w-full p-2 border rounded"
+              >
+                <option value="">All Sites</option>
+                {sites.map((site) => (
+                  <option key={site.code} value={site.code}>
+                    {site.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className="flex space-x-4">
             <div className="flex-1">
               <Label htmlFor="startDate">Start Date</Label>
@@ -151,6 +221,7 @@ function ViewObservations() {
               options={supervisors}
               onSelect={(s) => handleInputChange("supervisorName", s.name)}
               placeholder="Select a Supervisor"
+              value={filters.supervisorName}
             />
           </div>
           <div className="flex items-center">
@@ -192,6 +263,11 @@ function ViewObservations() {
               <p>
                 <strong>Action Addressed:</strong> {obs.actionAddressed}
               </p>
+              {isAdmin && (
+                <p>
+                  <strong>Site:</strong> {obs.site.code}
+                </p>
+              )}
             </div>
           ))}
       </div>
