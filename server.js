@@ -188,17 +188,28 @@ function setupRoutes() {
   app.get("/api/users", requireSite, async (req, res) => {
     const { isSupervisor } = req.query;
     try {
-      // For admin users, return users from all sites unless a specific site is requested
+      // Build where clause based on filters
+      const where = {
+        isSupervisor:
+          isSupervisor === "true"
+            ? true
+            : isSupervisor === "false"
+            ? false
+            : undefined,
+      };
+
+      // For admin users, only filter by site if userSite is provided
+      // For regular users, always filter by their assigned site
+      if (req.isAdmin) {
+        if (req.userSite) {
+          where.site = { code: req.userSite };
+        }
+      } else {
+        where.site = { code: req.userSite };
+      }
+
       const users = await prisma.user.findMany({
-        where: {
-          isSupervisor:
-            isSupervisor === "true"
-              ? true
-              : isSupervisor === "false"
-              ? false
-              : undefined,
-          site: { code: req.userSite }, // Always filter by site for consistent data access
-        },
+        where,
         orderBy: [
           { name: "asc" },
           { site: { code: "asc" } }, // Secondary sort by site code
