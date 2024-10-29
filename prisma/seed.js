@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 
 const SITE_COUNT = 3;
 const USERS_PER_SITE = 20;
-const OBSERVATIONS_PER_SITE = 40;
+const MAX_OBSERVATIONS_PER_SITE = 40;
 
 const topics = [
   "Positive Reinforcement",
@@ -88,7 +88,13 @@ async function main() {
     const supervisors = siteUsers.filter((user) => user.isSupervisor);
     const regularUsers = siteUsers.filter((user) => !user.isSupervisor);
 
-    for (let i = 0; i < OBSERVATIONS_PER_SITE; i++) {
+    const minObservations = Math.floor(MAX_OBSERVATIONS_PER_SITE / 2);
+    const totalObservations =
+      Math.floor(
+        Math.random() * (MAX_OBSERVATIONS_PER_SITE - minObservations + 1)
+      ) + minObservations;
+
+    for (let i = 0; i < totalObservations; i++) {
       const randomSupervisor =
         supervisors[Math.floor(Math.random() * supervisors.length)];
       const randomUser =

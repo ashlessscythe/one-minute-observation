@@ -9,6 +9,7 @@ import MainPage from "./pages/MainPage";
 import EnterObservation from "./pages/EnterObservation";
 import ViewObservations from "./pages/ViewObservations";
 import PendingPage from "./pages/PendingPage";
+import ChartsPage from "./pages/ChartsPage";
 import { SiteProvider } from "./contexts/SiteContext";
 import {
   useAuthorizer,
@@ -33,7 +34,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
   // Pass the user prop to the children
-  return React.Children.map(children, child => 
+  return React.Children.map(children, (child) =>
     React.cloneElement(child, { user })
   );
 };
@@ -66,6 +67,14 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["obs-view"]}>
                   <ViewObservations />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/charts"
+              element={
+                <ProtectedRoute allowedRoles={["obs-view"]}>
+                  <ChartsPage />
                 </ProtectedRoute>
               }
             />
