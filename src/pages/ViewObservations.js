@@ -61,14 +61,16 @@ function ViewObservations() {
     }
   };
 
-  const fetchSupervisors = async () => {
+  const fetchSupervisors = async (selectedSiteCode = null) => {
     try {
       const API_URL = process.env.REACT_APP_API_URL || "";
       const url = `${API_URL}/api/users?isSupervisor=true`;
       console.log("Fetching from URL:", url);
       const response = await fetch(url, {
         headers: {
-          "X-User-Site": isAdmin ? filters.siteCode || siteCode : siteCode,
+          "X-User-Site": isAdmin
+            ? selectedSiteCode || filters.siteCode || siteCode
+            : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
         },
       });
@@ -135,7 +137,7 @@ function ViewObservations() {
     if (isAdmin && name === "siteCode") {
       setSupervisors([]); // Clear current supervisors
       setFilters((prev) => ({ ...prev, supervisorName: "" })); // Clear selected supervisor
-      fetchSupervisors(); // Fetch supervisors for new site
+      fetchSupervisors(value); // Pass the new site code directly
     }
   };
 

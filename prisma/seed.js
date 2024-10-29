@@ -4,8 +4,8 @@ const { faker } = require("@faker-js/faker");
 const prisma = new PrismaClient();
 
 const SITE_COUNT = 3;
-const USERS_PER_SITE = 10;
-const OBSERVATIONS_PER_SITE = 20;
+const USERS_PER_SITE = 20;
+const OBSERVATIONS_PER_SITE = 40;
 
 const topics = [
   "Positive Reinforcement",
@@ -26,14 +26,27 @@ async function main() {
 
   await clearDatabase();
 
-  // Create sites
-  const sites = [];
-  for (let i = 0; i < SITE_COUNT; i++) {
+  // Create a single "test" site if it doesn't already exist
+  const testSite = await prisma.site.upsert({
+    where: { code: "TEST" },
+    update: {},
+    create: { code: "TEST" },
+  });
+  console.log(`Ensured site: ${testSite.code}`);
+
+  const sites = [testSite]; // Start with the "test" site
+
+  // Create remaining sites up to SITE_COUNT
+  for (let i = 1; i < SITE_COUNT; i++) {
+    // Generate a 4-character alphanumeric string
+    const randomSuffix = `${Math.floor(Math.random() * 10)}${faker.string
+      .alphanumeric(3)
+      .toUpperCase()}`;
+    const randomCode = `SITE_${randomSuffix}`;
+
     const site = await prisma.site.create({
       data: {
-        code:
-          faker.location.countryCode() +
-          faker.number.int({ min: 100, max: 999 }),
+        code: randomCode,
       },
     });
     sites.push(site);
@@ -42,14 +55,17 @@ async function main() {
 
   // Create users for each site
   for (const site of sites) {
-    // Create one supervisor
-    await prisma.user.create({
-      data: {
-        name: faker.person.fullName(),
-        isSupervisor: true,
-        siteId: site.id,
-      },
-    });
+    // Create 1 supervisor for every 3 users
+    const SUPERVISOR_COUNT = parseInt(USERS_PER_SITE / 3, 10);
+    for (let i = 0; i < SUPERVISOR_COUNT; i++) {
+      await prisma.user.create({
+        data: {
+          name: faker.person.fullName(),
+          isSupervisor: true,
+          siteId: site.id,
+        },
+      });
+    }
 
     // Create regular users
     for (let i = 0; i < USERS_PER_SITE - 1; i++) {
