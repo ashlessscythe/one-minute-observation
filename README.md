@@ -112,7 +112,17 @@ This app uses Authorizer for authentication. Make sure to set up your Authorizer
 
 - `GET /api/observations`: Fetch all observations
 - `POST /api/observations`: Create a new observation
+  - Note: For observations with topic "Unsafe Condition", the associate name is optional and will default to "N/A" if not provided
 - `GET /api/users`: Fetch all users
+
+## 📝 Observation Form Behavior
+
+When creating a new observation:
+- Associate name is required for all observation topics except "Unsafe Condition"
+- For "Unsafe Condition" observations:
+  - Associate name field becomes optional
+  - If no associate name is provided, it automatically defaults to "N/A"
+  - This helps track unsafe conditions that aren't associated with a specific individual
 
 ## 🤝 Contributing
 
