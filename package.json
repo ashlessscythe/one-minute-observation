@@ -43,7 +43,6 @@
     "react-day-picker": "^9.0.7",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.26.0",
-    "react-scripts": "5.0.1",
     "recharts": "^2.13.0",
     "serve": "^14.2.3",
     "tailwind-merge": "^2.4.0",
@@ -54,7 +53,7 @@
   "scripts": {
     "prisma:generate": "npx prisma generate",
     "start": "node server.js",
-    "build": "npm run prisma:generate && npx react-scripts build",
+    "build": "npm run prisma:generate && npm install react-scripts && npx react-scripts build",
     "dev:server": "nodemon server.js",
     "dev:client": "npx react-scripts start",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
@@ -85,6 +84,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^9.0.3",
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "react-scripts": "^5.0.1"
   }
 }
