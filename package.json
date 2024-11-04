@@ -54,9 +54,9 @@
   "scripts": {
     "prisma:generate": "npx prisma generate",
     "start": "node server.js",
-    "build": "npm run prisma:generate && react-scripts build",
+    "build": "npm run prisma:generate && npx react-scripts build",
     "dev:server": "nodemon server.js",
-    "dev:client": "react-scripts start",
+    "dev:client": "npx react-scripts start",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "prod": "npm run build && npm start",
     "ci": "npm run prisma:generate && npm run build && npm start",
