@@ -1,5 +1,5 @@
 import React from "react";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router";
 import {
   BarChart,
@@ -45,24 +45,7 @@ function ChartsPage() {
   const startDateRef = useRef(null);
   const endDateRef = useRef(null);
 
-  useEffect(() => {
-    if (!siteCode) {
-      navigate("/");
-      return;
-    }
-    if (!token) {
-      console.log("No token available, redirecting to login");
-      navigate("/");
-      return;
-    }
-    if (isAdmin) {
-      fetchSites();
-    }
-    fetchSupervisors();
-    fetchObservations();
-  }, [token, siteCode]);
-
-  const fetchSites = async () => {
+  const fetchSites = useCallback(async () => {
     if (!token) return;
     try {
       const API_URL = process.env.REACT_APP_API_URL || "";
@@ -87,43 +70,46 @@ function ChartsPage() {
       console.error("Error fetching sites:", error);
       setError("Failed to load sites. Please try again.");
     }
-  };
+  }, [token, siteCode, navigate]);
 
-  const fetchSupervisors = async (selectedSiteCode = null) => {
-    if (!token) return;
-    try {
-      const API_URL = process.env.REACT_APP_API_URL || "";
-      const url = `${API_URL}/api/users?isSupervisor=true`;
-      const response = await fetch(url, {
-        headers: {
-          "X-User-Site": isAdmin
-            ? selectedSiteCode || filters.siteCode || siteCode
-            : siteCode,
-          "X-User-Site-Admin": isAdmin ? "true" : "false",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.status === 401) {
-        console.log("Token expired or invalid, redirecting to login");
-        navigate("/");
-        return;
+  const fetchSupervisors = useCallback(
+    async (selectedSiteCode = null) => {
+      if (!token) return;
+      try {
+        const API_URL = process.env.REACT_APP_API_URL || "";
+        const url = `${API_URL}/api/users?isSupervisor=true`;
+        const response = await fetch(url, {
+          headers: {
+            "X-User-Site": isAdmin
+              ? selectedSiteCode || filters.siteCode || siteCode
+              : siteCode,
+            "X-User-Site-Admin": isAdmin ? "true" : "false",
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status === 401) {
+          console.log("Token expired or invalid, redirecting to login");
+          navigate("/");
+          return;
+        }
+        if (response.status === 403) {
+          navigate("/");
+          return;
+        }
+        if (!response.ok) {
+          throw new Error("Failed to fetch supervisors");
+        }
+        const data = await response.json();
+        setSupervisors(data);
+      } catch (error) {
+        console.error("Error fetching supervisors:", error);
+        setError("Failed to load supervisors. Please try again.");
       }
-      if (response.status === 403) {
-        navigate("/");
-        return;
-      }
-      if (!response.ok) {
-        throw new Error("Failed to fetch supervisors");
-      }
-      const data = await response.json();
-      setSupervisors(data);
-    } catch (error) {
-      console.error("Error fetching supervisors:", error);
-      setError("Failed to load supervisors. Please try again.");
-    }
-  };
+    },
+    [token, siteCode, isAdmin, filters.siteCode, navigate]
+  );
 
-  const fetchObservations = async () => {
+  const fetchObservations = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     setError("");
@@ -216,7 +202,32 @@ function ChartsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, siteCode, isAdmin, filters, navigate]);
+
+  useEffect(() => {
+    if (!siteCode) {
+      navigate("/");
+      return;
+    }
+    if (!token) {
+      console.log("No token available, redirecting to login");
+      navigate("/");
+      return;
+    }
+    if (isAdmin) {
+      fetchSites();
+    }
+    fetchSupervisors();
+    fetchObservations();
+  }, [
+    token,
+    siteCode,
+    isAdmin,
+    navigate,
+    fetchSites,
+    fetchSupervisors,
+    fetchObservations,
+  ]);
 
   const handleSearch = (e) => {
     e.preventDefault();

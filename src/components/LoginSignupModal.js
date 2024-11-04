@@ -6,7 +6,6 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
-import { useTheme } from "next-themes";
 import { Tabs, Tab, Box } from "@mui/material";
 import "./authorizer-custom.css";
 
@@ -32,7 +31,6 @@ function LoginSignupModal({ isOpen, onClose }) {
   const [error, setError] = useState(null);
   const { loading, setLoading, authorizerRef } = useAuthorizer();
   const modalRef = useRef(null);
-  const { theme } = useTheme();
   const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
@@ -87,7 +85,7 @@ function LoginSignupModal({ isOpen, onClose }) {
       // reload page after 5 seconds
       setTimeout(() => {
         window.location.reload();
-      }, 3000); 
+      }, 3000);
       onClose();
     }
   };

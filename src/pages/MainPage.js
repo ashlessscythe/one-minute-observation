@@ -8,7 +8,7 @@ import { MUIThemeProvider } from "../components/MUIThemeProvider";
 import Header from "../components/Header";
 
 function MainPage() {
-  const { user, loading, logout } = useAuthorizer();
+  const { user, loading } = useAuthorizer();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   if (loading) {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { Button } from "../components/ui/button";
@@ -32,7 +32,7 @@ function EnterObservation({ user }) {
   const [dateError, setDateError] = useState("");
   const dateInputRef = useRef(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
@@ -59,9 +59,9 @@ function EnterObservation({ user }) {
     } catch (e) {
       console.error("Error fetching users:", e);
     }
-  };
+  }, [token, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
 
-  const fetchSupervisors = async () => {
+  const fetchSupervisors = useCallback(async () => {
     if (!token) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=true`, {
@@ -85,9 +85,9 @@ function EnterObservation({ user }) {
     } catch (e) {
       console.error("Error fetching supervisors:", e);
     }
-  };
+  }, [token, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
 
-  const fetchSites = async () => {
+  const fetchSites = useCallback(async () => {
     if (!token) return;
     if (isAdmin) {
       try {
@@ -112,7 +112,7 @@ function EnterObservation({ user }) {
         console.error("Error fetching sites:", e);
       }
     }
-  };
+  }, [token, isAdmin, siteCode, navigate, API_URL]);
 
   const isFormValid = () => {
     const requiredFields = [
@@ -167,7 +167,17 @@ function EnterObservation({ user }) {
         }
       });
     }
-  }, [token, user.given_name, user.family_name, siteCode]);
+  }, [
+    token,
+    siteCode,
+    isAdmin,
+    navigate,
+    fetchSites,
+    fetchUsers,
+    fetchSupervisors,
+    user.given_name,
+    user.family_name,
+  ]);
 
   // Refetch users and supervisors when site changes (for admin)
   useEffect(() => {
@@ -175,7 +185,7 @@ function EnterObservation({ user }) {
       fetchUsers();
       fetchSupervisors();
     }
-  }, [formData.siteCode]);
+  }, [isAdmin, formData.siteCode, fetchUsers, fetchSupervisors]);
 
   const handleInputChange = (name, value) => {
     setFormData((prevData) => {
