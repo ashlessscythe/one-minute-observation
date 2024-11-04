@@ -33,6 +33,7 @@ function EnterObservation({ user }) {
   const dateInputRef = useRef(null);
 
   const fetchUsers = async () => {
+    if (!token) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
         headers: {
@@ -41,7 +42,12 @@ function EnterObservation({ user }) {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.statusCode === 403) {
+      if (response.status === 401) {
+        console.log("Token expired or invalid, redirecting to login");
+        navigate("/");
+        return;
+      }
+      if (response.status === 403) {
         navigate("/");
         return;
       }
@@ -56,6 +62,7 @@ function EnterObservation({ user }) {
   };
 
   const fetchSupervisors = async () => {
+    if (!token) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=true`, {
         headers: {
@@ -64,6 +71,11 @@ function EnterObservation({ user }) {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (response.status === 401) {
+        console.log("Token expired or invalid, redirecting to login");
+        navigate("/");
+        return;
+      }
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -76,6 +88,7 @@ function EnterObservation({ user }) {
   };
 
   const fetchSites = async () => {
+    if (!token) return;
     if (isAdmin) {
       try {
         const response = await fetch(`${API_URL}/api/sites`, {
@@ -85,6 +98,11 @@ function EnterObservation({ user }) {
             Authorization: `Bearer ${token}`,
           },
         });
+        if (response.status === 401) {
+          console.log("Token expired or invalid, redirecting to login");
+          navigate("/");
+          return;
+        }
         if (!response.ok) {
           throw new Error("Network response was not ok");
         }
@@ -118,6 +136,11 @@ function EnterObservation({ user }) {
       navigate("/");
       return;
     }
+    if (!token) {
+      console.log("No token available, redirecting to login");
+      navigate("/");
+      return;
+    }
 
     if (isAdmin) {
       fetchSites();
@@ -144,7 +167,7 @@ function EnterObservation({ user }) {
         }
       });
     }
-  }, [user.given_name, user.family_name, siteCode]);
+  }, [token, user.given_name, user.family_name, siteCode]);
 
   // Refetch users and supervisors when site changes (for admin)
   useEffect(() => {
@@ -196,6 +219,7 @@ function EnterObservation({ user }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (!token) return;
     if (!validateDate(formData.date)) {
       return;
     }
@@ -225,6 +249,11 @@ function EnterObservation({ user }) {
         },
         body: JSON.stringify(submissionData),
       });
+      if (response.status === 401) {
+        console.log("Token expired or invalid, redirecting to login");
+        navigate("/");
+        return;
+      }
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
@@ -248,7 +277,7 @@ function EnterObservation({ user }) {
     }
   };
 
-  if (!siteCode) {
+  if (!siteCode || !token) {
     return null; // Will redirect in useEffect
   }
 

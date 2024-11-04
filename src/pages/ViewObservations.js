@@ -37,13 +37,19 @@ function ViewObservations() {
       navigate("/");
       return;
     }
+    if (!token) {
+      console.log("No token available, redirecting to login");
+      navigate("/");
+      return;
+    }
     if (isAdmin) {
       fetchSites();
     }
     fetchSupervisors();
-  }, []);
+  }, [token]);
 
   const fetchSites = async () => {
+    if (!token) return;
     try {
       const API_URL = process.env.REACT_APP_API_URL || "";
       const response = await fetch(`${API_URL}/api/sites`, {
@@ -65,6 +71,7 @@ function ViewObservations() {
   };
 
   const fetchSupervisors = async (selectedSiteCode = null) => {
+    if (!token) return;
     try {
       const API_URL = process.env.REACT_APP_API_URL || "";
       const url = `${API_URL}/api/users?isSupervisor=true`;
@@ -78,8 +85,12 @@ function ViewObservations() {
           Authorization: `Bearer ${token}`,
         },
       });
-      if (response.statusCode === 403) {
-        // redirect
+      if (response.status === 401) {
+        console.log("Token expired or invalid, redirecting to login");
+        navigate("/");
+        return;
+      }
+      if (response.status === 403) {
         navigate("/");
         return;
       }
@@ -95,6 +106,7 @@ function ViewObservations() {
   };
 
   const fetchObservations = async () => {
+    if (!token) return;
     setLoading(true);
     setError("");
     try {
@@ -115,6 +127,11 @@ function ViewObservations() {
           Authorization: `Bearer ${token}`,
         },
       });
+      if (response.status === 401) {
+        console.log("Token expired or invalid, redirecting to login");
+        navigate("/");
+        return;
+      }
       if (!response.ok) {
         throw new Error("Failed to fetch observations");
       }
@@ -151,7 +168,7 @@ function ViewObservations() {
     return date.toISOString().split("T")[0];
   };
 
-  if (!siteCode) {
+  if (!siteCode || !token) {
     return null; // Will redirect in useEffect
   }
 
