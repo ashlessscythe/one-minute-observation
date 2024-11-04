@@ -9,9 +9,11 @@ import { Textarea } from "../components/ui/textarea";
 import { useSite } from "../contexts/SiteContext";
 import Header from "../components/Header";
 import { SearchableSelect } from "../components/SearchableSelect";
+import { useAuthorizer } from "@authorizerdev/authorizer-react";
 
 function EnterObservation({ user }) {
   const { siteCode, isAdmin } = useSite();
+  const { token } = useAuthorizer();
   const API_URL = process.env.REACT_APP_API_URL || "";
   const navigate = useNavigate();
   console.log(`username is ${user.given_name} ${user.family_name}`);
@@ -36,6 +38,7 @@ function EnterObservation({ user }) {
         headers: {
           "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.statusCode === 403) {
@@ -58,6 +61,7 @@ function EnterObservation({ user }) {
         headers: {
           "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
@@ -78,6 +82,7 @@ function EnterObservation({ user }) {
           headers: {
             "X-User-Site": siteCode,
             "X-User-Site-Admin": "true",
+            Authorization: `Bearer ${token}`,
           },
         });
         if (!response.ok) {
@@ -216,6 +221,7 @@ function EnterObservation({ user }) {
           "Content-Type": "application/json",
           "X-User-Site": isAdmin ? formData.siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(submissionData),
       });

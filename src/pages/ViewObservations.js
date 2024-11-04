@@ -8,10 +8,12 @@ import { Label } from "../components/ui/label";
 import { useSite } from "../contexts/SiteContext";
 import { SearchableSelect } from "../components/SearchableSelect";
 import Header from "../components/Header";
+import { useAuthorizer } from "@authorizerdev/authorizer-react";
 
 function ViewObservations() {
   const navigate = useNavigate();
   const { siteCode, isAdmin } = useSite();
+  const { token } = useAuthorizer();
   const [observations, setObservations] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [sites, setSites] = useState([]);
@@ -48,6 +50,7 @@ function ViewObservations() {
         headers: {
           "X-User-Site": siteCode,
           "X-User-Site-Admin": "true",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
@@ -72,6 +75,7 @@ function ViewObservations() {
             ? selectedSiteCode || filters.siteCode || siteCode
             : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (response.statusCode === 403) {
@@ -108,6 +112,7 @@ function ViewObservations() {
         headers: {
           "X-User-Site": isAdmin ? filters.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
+          Authorization: `Bearer ${token}`,
         },
       });
       if (!response.ok) {
