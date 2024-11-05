@@ -13,7 +13,7 @@ import { useAuthorizer } from "@authorizerdev/authorizer-react";
 
 function EnterObservation({ user }) {
   const { siteCode, isAdmin } = useSite();
-  const { token } = useAuthorizer();
+  const { authorizerRef } = useAuthorizer();
   const API_URL = process.env.REACT_APP_API_URL || "";
   const navigate = useNavigate();
   console.log(`username is ${user.given_name} ${user.family_name}`);
@@ -33,13 +33,13 @@ function EnterObservation({ user }) {
   const dateInputRef = useRef(null);
 
   const fetchUsers = useCallback(async () => {
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=false`, {
         headers: {
           "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authorizerRef.getToken()}`,
         },
       });
       if (response.status === 401) {
@@ -59,16 +59,16 @@ function EnterObservation({ user }) {
     } catch (e) {
       console.error("Error fetching users:", e);
     }
-  }, [token, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
+  }, [authorizerRef, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
 
   const fetchSupervisors = useCallback(async () => {
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     try {
       const response = await fetch(`${API_URL}/api/users?isSupervisor=true`, {
         headers: {
           "X-User-Site": isAdmin ? formData.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authorizerRef.getToken()}`,
         },
       });
       if (response.status === 401) {
@@ -85,17 +85,17 @@ function EnterObservation({ user }) {
     } catch (e) {
       console.error("Error fetching supervisors:", e);
     }
-  }, [token, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
+  }, [authorizerRef, isAdmin, formData.siteCode, siteCode, navigate, API_URL]);
 
   const fetchSites = useCallback(async () => {
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     if (isAdmin) {
       try {
         const response = await fetch(`${API_URL}/api/sites`, {
           headers: {
             "X-User-Site": siteCode,
             "X-User-Site-Admin": "true",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authorizerRef.getToken()}`,
           },
         });
         if (response.status === 401) {
@@ -112,7 +112,7 @@ function EnterObservation({ user }) {
         console.error("Error fetching sites:", e);
       }
     }
-  }, [token, isAdmin, siteCode, navigate, API_URL]);
+  }, [authorizerRef, isAdmin, siteCode, navigate, API_URL]);
 
   const isFormValid = () => {
     const requiredFields = [
@@ -136,7 +136,7 @@ function EnterObservation({ user }) {
       navigate("/");
       return;
     }
-    if (!token) {
+    if (!authorizerRef?.getToken()) {
       console.log("No token available, redirecting to login");
       navigate("/");
       return;
@@ -168,7 +168,7 @@ function EnterObservation({ user }) {
       });
     }
   }, [
-    token,
+    authorizerRef,
     siteCode,
     isAdmin,
     navigate,
@@ -229,7 +229,7 @@ function EnterObservation({ user }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     if (!validateDate(formData.date)) {
       return;
     }
@@ -255,7 +255,7 @@ function EnterObservation({ user }) {
           "Content-Type": "application/json",
           "X-User-Site": isAdmin ? formData.siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authorizerRef.getToken()}`,
         },
         body: JSON.stringify(submissionData),
       });
@@ -287,7 +287,7 @@ function EnterObservation({ user }) {
     }
   };
 
-  if (!siteCode || !token) {
+  if (!siteCode || !authorizerRef?.getToken()) {
     return null; // Will redirect in useEffect
   }
 

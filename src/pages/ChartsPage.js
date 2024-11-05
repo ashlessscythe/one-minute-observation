@@ -26,7 +26,7 @@ import { useAuthorizer } from "@authorizerdev/authorizer-react";
 function ChartsPage() {
   const navigate = useNavigate();
   const { siteCode, isAdmin } = useSite();
-  const { token } = useAuthorizer();
+  const { authorizerRef } = useAuthorizer();
   const [observationData, setObservationData] = useState([]);
   const [siteData, setSiteData] = useState([]);
   const [supervisorData, setSupervisorData] = useState([]);
@@ -46,14 +46,14 @@ function ChartsPage() {
   const endDateRef = useRef(null);
 
   const fetchSites = useCallback(async () => {
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     try {
       const API_URL = process.env.REACT_APP_API_URL || "";
       const response = await fetch(`${API_URL}/api/sites`, {
         headers: {
           "X-User-Site": siteCode,
           "X-User-Site-Admin": "true",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authorizerRef.getToken()}`,
         },
       });
       if (response.status === 401) {
@@ -70,11 +70,11 @@ function ChartsPage() {
       console.error("Error fetching sites:", error);
       setError("Failed to load sites. Please try again.");
     }
-  }, [token, siteCode, navigate]);
+  }, [authorizerRef, siteCode, navigate]);
 
   const fetchSupervisors = useCallback(
     async (selectedSiteCode = null) => {
-      if (!token) return;
+      if (!authorizerRef?.getToken()) return;
       try {
         const API_URL = process.env.REACT_APP_API_URL || "";
         const url = `${API_URL}/api/users?isSupervisor=true`;
@@ -84,7 +84,7 @@ function ChartsPage() {
               ? selectedSiteCode || filters.siteCode || siteCode
               : siteCode,
             "X-User-Site-Admin": isAdmin ? "true" : "false",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${authorizerRef.getToken()}`,
           },
         });
         if (response.status === 401) {
@@ -106,11 +106,11 @@ function ChartsPage() {
         setError("Failed to load supervisors. Please try again.");
       }
     },
-    [token, siteCode, isAdmin, filters.siteCode, navigate]
+    [authorizerRef, siteCode, isAdmin, filters.siteCode, navigate]
   );
 
   const fetchObservations = useCallback(async () => {
-    if (!token) return;
+    if (!authorizerRef?.getToken()) return;
     setLoading(true);
     setError("");
     try {
@@ -128,7 +128,7 @@ function ChartsPage() {
         headers: {
           "X-User-Site": isAdmin ? filters.siteCode || siteCode : siteCode,
           "X-User-Site-Admin": isAdmin ? "true" : "false",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authorizerRef.getToken()}`,
         },
       });
 
@@ -202,14 +202,14 @@ function ChartsPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, siteCode, isAdmin, filters, navigate]);
+  }, [authorizerRef, siteCode, isAdmin, filters, navigate]);
 
   useEffect(() => {
     if (!siteCode) {
       navigate("/");
       return;
     }
-    if (!token) {
+    if (!authorizerRef?.getToken()) {
       console.log("No token available, redirecting to login");
       navigate("/");
       return;
@@ -220,7 +220,7 @@ function ChartsPage() {
     fetchSupervisors();
     fetchObservations();
   }, [
-    token,
+    authorizerRef,
     siteCode,
     isAdmin,
     navigate,
@@ -246,7 +246,7 @@ function ChartsPage() {
     }
   };
 
-  if (!siteCode || !token) {
+  if (!siteCode || !authorizerRef?.getToken()) {
     return null; // Will redirect in useEffect
   }
 
